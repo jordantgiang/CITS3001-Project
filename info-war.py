@@ -8,22 +8,107 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 
-# Classes
+# Global Constants
+# --------------------------------------------------- 
+GREY_NUM = 8 # Number of grey agent
+GREEN_NUM = 90 # Number of green agent
+CON_PROB = 0.2 # Probability of initial connection between any 2 green nodes
+SPY_PROP = 0.2 # Proportion of agents who are spies from the red team
+UNCERTAINTY_RANGE = (-0.5,0.5) # Initial uncertainty range for green nodes
+VOTER_PERC = 0.7 # Percentage of green nodes with voting opinion 
+
+
+# Classes for nodes
 # --------------------------------------------------- 
 class Blue:
-    def __init__(self, name, age):
-        self.name = name
-        self.age = age
+    def __init__(self):
+        self.energy = 100
+        self.messages = {
+            "M1": {"cost": 1, "strength": 1, "message": None}, 
+            "M2": {"cost": 2, "strength": 2, "message": None},
+            "M3": {"cost": 3, "strength": 3, "message": None},
+            "M4": {"cost": 4, "strength": 4, "message": None},
+            "M5": {"cost": 5, "strength": 5, "message": None}
+        }
+    
+    def broadcast(self):
+        return
+    
+    def introduceGrey(self):
+        return
+
+    def takeTurn(self):
+        return
+
 class Red:
-    def __init__(self, name, age):
-        self.name = name
-        self.age = age
+    def __init__(self, followers):
+        self.followers = followers
+        self.messages = {
+            "M1": {"cost": 1, "strength": 1, "message": None}, 
+            "M2": {"cost": 2, "strength": 2, "message": None},
+            "M3": {"cost": 3, "strength": 3, "message": None},
+            "M4": {"cost": 4, "strength": 4, "message": None},
+            "M5": {"cost": 5, "strength": 5, "message": None}
+        }
+    
+    def broadcast(self):
+        return
+
+    def takeTurn(self):
+        return
+
 class Green:
     def __init__(self, voteCertainty):
         self.voteCertainty = voteCertainty
+    
+    def socialise(self):
+        return
+    
+    def takeTurn(self):
+        return
+
+    
 class Grey:
     def __init__(self, spy):
         self.spy = spy
+    
+    def influence(self):
+        return
+
+    def takeTurn(self):
+        return
+
+
+# Classes for game
+# --------------------------------------------------- 
+class Game:
+    def __init__(self, grey_num, green_num, con_prob, spy_prob, uncertainity_range, voter_perc):
+        self.grey_num = grey_num
+        self.green_num = green_num
+        self.con_prob = con_prob
+        self.spy_prob = spy_prob
+        self.uncertainity_range = uncertainity_range
+        self.voter_perc = voter_perc
+        self.green_adj_list = []
+
+    def createGraph(self):
+        for i in range(self.green_num):
+            
+
+        self.green_adj_list = 
+        return
+
+    def checkWin(self):
+        return
+    
+    def runGame(self):
+        return
+
+    def initGame(self):
+        self.createGraph()
+        self.runGame()
+    
+    
 
 # Functions
 # --------------------------------------------------- 
@@ -65,3 +150,10 @@ def initGameDefault(idFile, edgeFile):
 
 initGameDefault("node-attributes","network-2.csv")
     
+def main():
+    G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNCERTAINTY_RANGE,VOTER_PERC)
+    G1.initGame()
+
+
+if __name__=="__main__":
+    main()
