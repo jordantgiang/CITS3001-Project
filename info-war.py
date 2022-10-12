@@ -4,19 +4,23 @@
 # Import libraries
 # --------------------------------------------------- 
 import random
+from types import NoneType
 import networkx as nx
 import matplotlib.pyplot as plt
 
 
 # Global Constants
 # --------------------------------------------------- 
+# Inputs
 GREY_NUM = 8 # Number of grey agent
 GREEN_NUM = 90 # Number of green agent
-CON_PROB = 0.2 # Probability of initial connection between any 2 green nodes
+CON_PROB = 0.03 # Probability of initial connection between any 2 green nodes
 SPY_PROP = 0.2 # Proportion of agents who are spies from the red team
-UNCERTAINTY_RANGE = (-0.5,0.5) # Initial uncertainty range for green nodes
-VOTER_PERC = 0.7 # Percentage of green nodes with voting opinion 
+UNC_RANGE = (-0.5,0.5) # Initial uncertainty range for green nodes
+INIT_VOTE = 0.7 # Percentage of green nodes with voting opinion
 
+# Game settings
+WIN_THRESHOLD = 0.6
 
 # Classes for nodes
 # --------------------------------------------------- 
@@ -35,9 +39,10 @@ class Blue:
         return
     
     def introduceGrey(self):
+        # Grey agent turn
         return
 
-    def takeTurn(self):
+    def chooseAction(self):
         return
 
 class Red:
@@ -54,17 +59,15 @@ class Red:
     def broadcast(self):
         return
 
-    def takeTurn(self):
+    def chooseAction(self):
         return
 
 class Green:
-    def __init__(self, voteCertainty):
-        self.voteCertainty = voteCertainty
+    def __init__(self, vote, uncertainty):
+        self.vote = vote
+        self.uncertainty = uncertainty
     
     def socialise(self):
-        return
-    
-    def takeTurn(self):
         return
 
     
@@ -75,38 +78,123 @@ class Grey:
     def influence(self):
         return
 
-    def takeTurn(self):
-        return
-
 
 # Classes for game
 # --------------------------------------------------- 
 class Game:
-    def __init__(self, grey_num, green_num, con_prob, spy_prob, uncertainity_range, voter_perc):
-        self.grey_num = grey_num
-        self.green_num = green_num
-        self.con_prob = con_prob
-        self.spy_prob = spy_prob
-        self.uncertainity_range = uncertainity_range
-        self.voter_perc = voter_perc
+    def __init__(self, greyNum, greenNum, connectProb, spyProp, uncRange, initVote):
+        self.greyNum = greyNum
+        self.greenNum = greenNum
+        self.connectProb = connectProb
+        self.spyProp = spyProp
+        self.uncRange = uncRange
+        self.initVote = initVote
+        self.graph = None
         self.green_adj_list = []
 
     def createGraph(self):
-        for i in range(self.green_num):
+        
+        G = nx.Graph()
+        colourMap = []
+        voteList = {}
+        
+        # Create Green nodes/edges
+        for i in range(self.greenNum):
+            # Node's uncertainty and opinion
+            vote = False
+            if (i < self.greenNum * self.initVote):
+                vote = True
+                
+            if (vote):
+                voteList[i] = "T"
+            else:
+                voteList[i] = "F"
             
-
-        self.green_adj_list = 
-        return
+            unc = round(random.uniform(self.uncRange[0], self.uncRange[1]), 1)
+            
+            # Adding node by name and decision value
+            G.add_node(i, obj = Green(vote, unc))
+            colourMap.append("green")
+        
+        # Create Green connection list
+        for i in list(G.nodes):
+            for j in list(G.nodes):
+                if (i < j):
+                    if (random.random() <= self.connectProb):
+                        G.add_edge(i, j)
+            
+        # Print graph
+        pos = nx.circular_layout(G)
+        nx.draw(G, pos=pos, with_labels=False, node_color=colourMap)
+        nx.draw_networkx_labels(G, pos, labels=voteList)
+        plt.show() 
+        
+        # Update Game attribute
+        self.graph = G
 
     def checkWin(self):
+        # Voting Proportion
+        # Vote Majority - BLUE WIN
+        # No Voting Majority - RED WIN
+        
+        certainVoters = 0
+        certainNonVoters = 0
+        for k in range(self.greenNum):
+            node = self.graph.nodes[k]["obj"]
+            if (node.uncertainty < 0):
+                if (node.vote):
+                    certainVoters += 1
+                else:
+                    certainNonVoters += 1
+        
+        if (certainVoters / self.greenNum > WIN_THRESHOLD):
+            return 1
+        elif (certainNonVoters / self.greenNum > WIN_THRESHOLD):
+            return 2
+        return 0
+        
+    def endGame(self):
         return
     
-    def runGame(self):
-        return
+    def runGame(self, redAgent, blueAgent, greyAgents):
+        win = self.checkWin()
+        while (win == 0):
+            # Red
+            redAgent.chooseAction()
+            
+            # Blue
+            blueAgent.chooseAction()
+            
+            # Grey
+            
+            # Green
+            for edge in list(self.graph.edges):
+                print(edge)
+                node1 = self.graph.nodes[edge[0]]["obj"]
+                node2 = self.graph.nodes[edge[1]]["obj"]
+                
+                
+                
+            break
+                        
+                        
+                
+            
+            # Check win
+            win = self.checkWin()
+        self.endGame()
 
     def initGame(self):
         self.createGraph()
-        self.runGame()
+        red = Red(list(range(self.greenNum)))
+        blue = Blue()
+        greys = []
+        for i in range(self.greyNum):
+            spy = False
+            if (i < self.greyNum * self.spyProp):
+                spy = True
+            greys.append(Grey(spy))
+        self.runGame(red, blue, greys)
     
     
 
@@ -148,10 +236,10 @@ def initGameDefault(idFile, edgeFile):
     nx.draw(G, with_labels=True, node_color=colourMap)
     plt.show() 
 
-initGameDefault("node-attributes","network-2.csv")
+# initGameDefault("node-attributes","network-2.csv")
     
 def main():
-    G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNCERTAINTY_RANGE,VOTER_PERC)
+    G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE)
     G1.initGame()
 
 
