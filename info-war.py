@@ -4,6 +4,7 @@
 # Import libraries
 # --------------------------------------------------- 
 import matplotlib.pyplot as plt
+import math
 import networkx as nx
 import random
 import time
@@ -15,8 +16,8 @@ GREY_NUM = 8 # Number of grey agent
 GREEN_NUM = 90 # Number of green agent
 CON_PROB = 0.03 # Probability of initial connection between any 2 green nodes
 SPY_PROP = 0.2 # Proportion of agents who are spies from the red team
-UNC_RANGE = (-0.5,0.5) # Initial uncertainty range for green nodes
-INIT_VOTE = 0.55 # Percentage of green nodes with voting opinion
+UNC_RANGE = (-0.5, 0.3) # Initial uncertainty range for green nodes
+INIT_VOTE = 0.7 # Percentage of green nodes with voting opinion
 
 # Game settings
 WIN_THRESHOLD = 0.6 # Proportion of population required with agreeing certain (uncertainty < 0) opinions for red/blue to win.
@@ -99,33 +100,51 @@ class Game:
 
     # Visualisation of the current game state graph
     def showGraph(self, adj, clr):
-        
+        plt.clf()
         self.graph.clear()
-        colourMap = ["blue", "red"]
-        voteList = {0: "Blue", 1: "Red"}
+        colourMap = []
+        voteList = {}
         
         self.graph.add_nodes_from(self.nodes)
-        for i in range(self.greenNum):
-            colourMap.append("green")
         
-        for i in range(self.greenNum):
-            if self.nodes[i+2].vote:
-                voteList[i+2] = "T"
+        fixPos = {}
+        nrows = math.ceil(math.sqrt(self.greenNum))
+        
+        for i in range(len(self.nodes)):
+            node = self.nodes[i]
+            # If blue node
+            if node.__class__.__name__ == "Blue":
+                colourMap.append("blue")
+                voteList[node] = "Blue"
+                fixPos[node] = (-nrows//3, (nrows // 2) - 1)
+            # If red node
+            elif node.__class__.__name__ == "Red":
+                colourMap.append("red")
+                voteList[node] = "Red"
+                fixPos[node] = (nrows//3 + nrows, (nrows // 2) - 1)
             else:
-                voteList[i+2] = "F"
+                fixPos[node] = ((i-2) % nrows, (i-2) // nrows)
+                if node.vote:
+                    colourMap.append( (0, 0.5, 1) )
+                    voteList[node] = f"V, {round(node.uncertainty, 1)}"
+                else:
+                    colourMap.append( (1, 0.5, 0) )
+                    voteList[node] = f"NV, {round(node.uncertainty, 1)}"
                 
         self.graph.add_edges_from(adj)
         
-        # fixed_pos = {0: (-1000,0), 1: (1000,-0)}
-        # fixed_nodes = fixed_pos.keys()
-
-        pos = nx.spring_layout(self.graph)
-        nx.draw(self.graph, pos = pos, with_labels=False, node_color=colourMap, edge_color=[clr]*len(self.graph.edges()))
+        pos = nx.spring_layout(self.graph, pos=fixPos, fixed=self.nodes)
+        # nx.draw_networkx_nodes(self.graph, pos=pos, node_color=colourMap, node_size=[30]*len(self.nodes))
+        # nx.draw_networkx_edges(self.graph, pos=pos, edge_color=[clr]*len(self.graph.edges()))
+        nx.draw(self.graph, pos = pos, with_labels=False, node_color=colourMap, edge_color=[clr]*len(self.graph.edges()), node_size=[30]*len(self.nodes))
         
-        nx.draw_networkx_labels(self.graph, pos, labels=voteList)
-        # plt.ion()
-        plt.show()
-        # plt.pause(0.5)
+        labelPos = {}
+        for p in pos.keys():
+            labelPos[p] = (pos[p][0] - nrows/50, pos[p][1] + nrows/45)
+        
+        nx.draw_networkx_labels(self.graph, pos=labelPos, labels=voteList, font_size=8)
+        # plt.show()
+        plt.pause(1)
 
     # Creates an initial game state graph 
     def createPop(self):
@@ -143,12 +162,12 @@ class Game:
             
             self.nodes.append(Green(vote, uncertainty))
             
-            self.blueAdj.append( (0, i+2) )
-            self.redAdj.append( (0, i+2) )
+            self.blueAdj.append( (self.nodes[0], self.nodes[i+2]) )
+            self.redAdj.append( (self.nodes[1], self.nodes[i+2]) )
         
         # Generate initial random edges
         for i in range(2, 2+self.greenNum):
-            for j in range(i, 2+self.greenNum):
+            for j in range(i+1, 2+self.greenNum):
                 if (random.random() < self.connectProb):
                     self.greenAdj.append( (self.nodes[i], self.nodes[j]) )
 
@@ -183,6 +202,9 @@ class Game:
             overflow = agent.uncertainty - 1
             agent.vote = not agent.vote
             agent.uncertainty = 1 - overflow
+        
+        if (agent.uncertainty < -1):
+            agent.uncertainty = -1
 
     # In the case of a red/blue to green interaction, @param agent1 is passed as red/blue
     def interact(self, agent1, agent2):
@@ -211,10 +233,8 @@ class Game:
             pass
     
     def socialise(self):
-        for edge in list(self.graph.edges):
-                node1 = self.graph.nodes[edge[0]]["obj"]
-                node2 = self.graph.nodes[edge[1]]["obj"]
-                self.interact(node1, node2)
+        for edge in self.greenAdj:
+                self.interact(edge[0], edge[1])
         return
     
     # Broadcasting message to all Green nodes
@@ -230,20 +250,25 @@ class Game:
             # Red
             self.nodes[1].chooseAction()
             
+            self.showGraph(self.redAdj, (1,0,0,0.4))
             # Blue
             self.nodes[0].chooseAction()
+            self.showGraph(self.blueAdj, (0,0,1,0.4))
             
             # Grey
             
             # Green
             self.socialise()
+            self.showGraph(self.greenAdj, (0,1,0,0.4))
                 
-            self.showGraph(self.greenAdj, "green")
-            
-            break
             
             # Check win
-            # win = self.checkWin()
+            win = self.checkWin()
+            
+        if win==1:
+            print("BLUE WINS")
+        elif win==2:
+            print("RED WINS")
         self.endGame()
 
     def initGame(self):
