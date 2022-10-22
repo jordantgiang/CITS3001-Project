@@ -13,7 +13,7 @@ import time
 # --------------------------------------------------- 
 # Inputs
 GREY_NUM = 8 # Number of grey agent
-GREEN_NUM = 90 # Number of green agent
+GREEN_NUM = 25 # Number of green agent
 CON_PROB = 0.03 # Probability of initial connection between any 2 green nodes
 SPY_PROP = 0.2 # Proportion of agents who are spies from the red team
 UNC_RANGE = (-0.5, 0.3) # Initial uncertainty range for green nodes
@@ -116,12 +116,12 @@ class Game:
             if node.__class__.__name__ == "Blue":
                 colourMap.append("blue")
                 voteList[node] = "Blue"
-                fixPos[node] = (-nrows//3, (nrows // 2) - 1)
+                fixPos[node] = (-nrows//3, nrows)
             # If red node
             elif node.__class__.__name__ == "Red":
                 colourMap.append("red")
                 voteList[node] = "Red"
-                fixPos[node] = (nrows//3 + nrows, (nrows // 2) - 1)
+                fixPos[node] = (nrows//3 + nrows, nrows)
             else:
                 fixPos[node] = ((i-2) % nrows, (i-2) // nrows)
                 if node.vote:
@@ -134,15 +134,15 @@ class Game:
         self.graph.add_edges_from(adj)
         
         pos = nx.spring_layout(self.graph, pos=fixPos, fixed=self.nodes)
-        # nx.draw_networkx_nodes(self.graph, pos=pos, node_color=colourMap, node_size=[30]*len(self.nodes))
-        # nx.draw_networkx_edges(self.graph, pos=pos, edge_color=[clr]*len(self.graph.edges()))
-        nx.draw(self.graph, pos = pos, with_labels=False, node_color=colourMap, edge_color=[clr]*len(self.graph.edges()), node_size=[30]*len(self.nodes))
+        nx.draw_networkx_nodes(self.graph, pos=pos, node_color=colourMap, node_size=[30]*len(self.nodes))
+        nx.draw_networkx_edges(self.graph, pos=pos, edge_color=[clr]*len(self.graph.edges()))
+        # nx.draw(self.graph, pos = pos, with_labels=False, node_color=colourMap, edge_color=[clr]*len(self.graph.edges()), node_size=[30]*len(self.nodes))
         
         labelPos = {}
         for p in pos.keys():
             labelPos[p] = (pos[p][0] - nrows/50, pos[p][1] + nrows/45)
         
-        nx.draw_networkx_labels(self.graph, pos=labelPos, labels=voteList, font_size=8)
+        nx.draw_networkx_labels(self.graph, pos=labelPos, labels=voteList, font_size=9)
         # plt.show()
         plt.pause(1)
 
@@ -238,7 +238,17 @@ class Game:
         return
     
     # Broadcasting message to all Green nodes
-    def broadcast(self, message, receivers):
+    def broadcast(self, message, receivers, team, penalty):
+        if (team == "blue"):
+            # broadcast message
+            if (penalty):
+                pass
+                # lose energy
+        else: # red team
+            # broadcast message
+            if (penalty):
+                pass
+                # lose follower
         return
     
     def endGame(self):
