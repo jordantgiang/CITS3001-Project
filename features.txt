@@ -1,0 +1,40 @@
+MINIMUM
+-1. Implementing a green network where the nodes can interact
+-2. Implement one red, one blue and some grey agents
+-3. Every team (red, blue, green) takes a turn, one after 
+another. You can start from any team.
+-4. Every agent has an opinion and uncertainty
+-5. An interaction function that determines the change in 
+opinion and uncertainity
+6. An implementation that caters for the effect on the 
+number of followers after red agent interacts with the 
+green agents
+7. An implementation that caters for the effect on energy 
+when the blue agent interacts with the green agents
+8. An implementation where the blue agent can choose between 
+inviting a grey agent or taking a normal turn
+9. Implementation of grey agent: 
+    1) if grey is a spy, it can act like a red agent without 
+    losing followers, 
+    2) if it is an ally of blue, blue can take its turn, 
+    without losing an lifeline.
+10. Human vs. computer play is possible, i.e., red/blue 
+agent can be a human.
+11. Some logical modelling of the agents that students can
+describe in the report
+12. Possibility to pass parameters at the beginning of the 
+game, e.g., percentage of grey nodes, starting uncertainties, 
+percentage of nodes that want to vote and others described 
+in earlier. 
+
+OPTIONAL
+1. Green network creation/updation
+2. Weights on the links in the green network
+3. Selecting a message strength of red/blue nodes
+4. Updating uncertainty of the affected node, after an 
+interaction
+5. Visualisation
+6. Implementation language either python or java
+7. Object Oriented or functional
+8. Modeling of the agents i.e., how to make them 
+intelligent

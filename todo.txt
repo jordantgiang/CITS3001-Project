@@ -1,0 +1,72 @@
+# POINT 5,6,7
+# -------------------------------------
+- message selection
+    - pass to "broadcast()"
+    - random now, minimax later
+
+- red broadcasting
+    - message selection
+    - follower loss
+- blue broadcasting
+    - message selection
+    - energy loss
+
+
+# POINT 8
+# -------------------------------------
+- Blue select action
+    - message or grey agent
+        - random now, minimax later
+
+# POINT 9
+# -------------------------------------
+- Grey action
+    - Spy (red)
+        - red broadcast (highest strength)
+        - broadcast(message=max, receivers=all, team=red, penalty=False)
+    - Ally (blue)
+        - blue chooses message
+        - broadcast(message=max, receivers=blueAdj, team=blue, penalty=False)
+    - Delete Spy
+
+# POINT 10
+# -------------------------------------
+- Adding "player" flag T/F to relevant functions
+- Visualisation (networkx)
+
+- GUI (tkinter)
+    - Input parameters
+        - Function to select at beginning of simulations
+            - Parameters (grey percentage)
+            - Simulation type (player/AI)
+        - Display throughout the game
+    - Game state
+        - Number of voters/non-voters
+        - Proportion of voters/non-voters
+        - Average uncertainty of voters/non-voters
+    - Resources 
+        - Energy
+        - Red followers
+        - Grey agents available
+    - Viewing options
+        - Fast (results of the simulations)
+        - Slow (step-by-step)
+        - Ability to switch between (async stuff?)
+
+# POINT 11
+# -------------------------------------
+- Evaluation Function
+    - Considers:
+        - Parameters:
+            - Number of green
+            - Number of grey
+            - Spy proportion
+            - Winning threshold
+        - Game state:
+            - Number of voters/non-voters
+            - Proportion of voters/non-voters
+            - Round
+        - Resources 
+            - Energy
+            - Red followers
+            - Grey agents available
