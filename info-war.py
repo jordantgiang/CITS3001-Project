@@ -8,6 +8,8 @@ import math
 import networkx as nx
 import random
 import time
+import tkinter as tk
+from tkinter import ttk
 
 # Global Constants
 # --------------------------------------------------- 
@@ -280,7 +282,31 @@ class Game:
                 spy = True
             greys.append(Grey(spy))
         self.runGame(greys)
-    
+
+# GUI
+# -------------------------------------------------------------
+
+
+    def showWindow(self):
+
+        def button_clicked(option):
+            print('Button clicked:',option)
+        
+        root = tk.Tk()
+        root.title('Information War Game')
+        root.geometry('600x400+50+50')
+        root.iconbitmap('./logo.ico')
+
+        # place a label on the root window
+        message = ttk.Label(root, text="Information War Game", font=("Rockwell", 14))
+        message.pack()
+
+        # place a button on the root window
+        ttk.Button(root, text='Click Me', command=button_clicked('Hello')).pack()
+
+        # keep the window displaying
+        root.mainloop()
+
     
 
 # Functions
@@ -323,7 +349,8 @@ class Game:
     
 def main():
     G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE)
-    G1.initGame()
+    # G1.initGame()
+    G1.showWindow()
     # a1 = Green(True, -0.7)
     # a2 = Green(True, 0.2)
     # G1.interact(a1, a2)
