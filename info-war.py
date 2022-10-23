@@ -39,14 +39,11 @@ class Blue:
             "M4": {"cost": 4, "strength": 0.4, "message": None},
             "M5": {"cost": 5, "strength": 0.5, "message": None}
         }
-    
-    # Introduce a Grey node
-    def introduceGrey(self):
-        # Grey agent turn
-        return
-
     # Decision making method for choosing a Blue agent action
-    def chooseAction(self):
+    def chooseAction(self, greyAgents):
+        # Randomly chooses between grey node and broadcast
+        if (len(greyAgents) != 0 and random.random() > 0.1):
+            return 1
         # Choosing random message
         print(f"Energy: {self.energy}")
         if (self.energy == 0):
@@ -85,6 +82,10 @@ class Grey:
         self.spy = spy
     
     def influence(self):
+        if (self.spy):
+            print("sneakily INFLUENCING")
+        else:
+            print("INFLUENCING")
         return
 
 
@@ -119,19 +120,32 @@ class Game:
         
         fixPos = {}
         nrows = math.ceil(math.sqrt(self.greenNum))
-        
+        greyCount = 0
         for i in range(len(self.nodes)):
             node = self.nodes[i]
             # If blue node
-            if node.__class__.__name__ == "Blue":
+            if type(node) == Blue:
                 colourMap.append("blue")
                 voteList[node] = "Blue"
                 fixPos[node] = (-nrows//3, nrows)
             # If red node
-            elif node.__class__.__name__ == "Red":
+            elif type(node) == Red:
                 colourMap.append("red")
                 voteList[node] = "Red"
                 fixPos[node] = (nrows//3 + nrows, nrows)
+            elif type(node) == Grey:
+                greyCount += 1
+                if node == adj[0][0]:
+                    if node.spy:
+                        colourMap.append("red")
+                        voteList[node] = "Spy"
+                    else:
+                        colourMap.append("blue")
+                        voteList[node] = "Influencer"
+                else:
+                    colourMap.append("grey")
+                    voteList[node] = "?"
+                fixPos[node] = (-nrows//3, nrows - greyCount)
             else:
                 fixPos[node] = ((i-2) % nrows, (i-2) // nrows)
                 if node.vote:
@@ -152,7 +166,7 @@ class Game:
         
         nx.draw_networkx_labels(self.graph, pos=labelPos, labels=voteList, font_size=9)
         # plt.show()
-        plt.pause(0.3)
+        plt.pause(1)
 
     # Creates an initial game state graph 
     def createPop(self):
@@ -178,6 +192,12 @@ class Game:
             for j in range(i+1, 2+self.greenNum):
                 if (random.random() < self.connectProb):
                     self.greenAdj.append( (self.nodes[i], self.nodes[j]) )
+        
+        for i in range(self.greyNum):
+            spy = False
+            if (i < self.greyNum * self.spyProp):
+                spy = True
+            self.nodes.append(Grey(spy))
 
     def checkWin(self):
         certainVoters = 0
@@ -269,9 +289,13 @@ class Game:
     def endGame(self):
         return
     
-    def runGame(self, greyAgents):
+    def runGame(self):
         win = self.checkWin()
+        isGrey = True
         while (win == 0):
+            if (len(self.nodes) == self.greenNum + 2 and isGrey):
+                print("NO GREY AGENTS LEFT")
+                isGrey = False
             # Red
             redMsg = self.nodes[1].chooseAction()
             if (len(self.redAdj) == 0):
@@ -279,9 +303,20 @@ class Game:
             else:
                 self.broadcast(redMsg, self.redAdj, "red", True)
                 self.showGraph(self.redAdj, (1,0,0,0.4))
+            
             # Blue
-            blueMsg = self.nodes[0].chooseAction()
-            if (blueMsg == -1):
+            blueMsg = self.nodes[0].chooseAction(self.nodes[self.greenNum + 2:])
+            if (blueMsg == 1):
+                grey = random.choice(list(self.nodes[self.greenNum + 2:]))
+                # greyAdj = []
+                # for green in self.nodes:
+                #     if (type(green) == Green):
+                #         greyAdj.append( (grey, green) )
+                greyAdj = list(zip([grey]*self.greenNum, self.nodes[2:self.greenNum+2]))
+                grey.influence()
+                self.showGraph(greyAdj, (108, 122, 137, 0.4) )
+                self.nodes.remove(grey)
+            elif (blueMsg == -1):
                 print("NO MORE ENERGY")
             else:
                 self.broadcast(blueMsg, self.blueAdj, "blue", False)
@@ -305,13 +340,13 @@ class Game:
 
     def initGame(self):
         self.createPop()
-        greys = []
-        for i in range(self.greyNum):
-            spy = False
-            if (i < self.greyNum * self.spyProp):
-                spy = True
-            greys.append(Grey(spy))
-        self.runGame(greys)
+        # greys = []
+        # for i in range(self.greyNum):
+        #     spy = False
+        #     if (i < self.greyNum * self.spyProp):
+        #         spy = True
+        #     greys.append(Grey(spy))
+        self.runGame()
 
 # GUI
 # -------------------------------------------------------------

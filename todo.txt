@@ -10,7 +10,7 @@
 - blue broadcasting
     - message selection
     - energy loss
-
+# COMPLETED
 
 # POINT 8
 # -------------------------------------
