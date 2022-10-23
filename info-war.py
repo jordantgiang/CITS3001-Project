@@ -11,6 +11,8 @@ import time
 import tkinter as tk
 from tkinter import ttk
 import sv_ttk
+from PIL import Image, ImageTk
+
 
 # Global Constants
 # --------------------------------------------------- 
@@ -407,6 +409,8 @@ class Game:
     def showWindow2(self):
         def getSelectedMessage(selected_message):
             print(selected_message.get())
+        def introduceGrey():
+            print("grey introduced")
 
         def createSideFrame(container,left):
             frame = ttk.Frame(container)
@@ -440,16 +444,30 @@ class Game:
                 r = ttk.Radiobutton(frame, text=f"{messages[msgKeys[i]]['message']}",value=msgKeys[i],variable=selected_message).grid(column=0, row=i+4, sticky=tk.W, padx=15, pady=5)
                 ttk.Label(frame, text=f"{messages[msgKeys[i]]['strength']}").grid(column=1, row=i+4, padx=15, pady=5)
                 ttk.Label(frame, text=f"{messages[msgKeys[i]]['cost']}").grid(column=2, row=i+4, padx=15, pady=5)
-
-            button = ttk.Button(frame, text="Send Message", command=lambda:getSelectedMessage(selected_message)).grid(column=0, row=10, columnspan=3, padx=15, pady=15)
+            if left:
+                ttk.Button(frame, text="Send Message", command=lambda:getSelectedMessage(selected_message)).grid(column=0, row=10, columnspan=3, padx=15, pady=15)
+            else:
+                ttk.Button(frame, text="Send Message", command=lambda:getSelectedMessage(selected_message)).grid(column=0, row=10, columnspan=2, padx=15, pady=15)
+                ttk.Button(frame, text="Introduce Grey", command=introduceGrey).grid(column=1, row=10, columnspan=2, padx=15, pady=15)
             return frame
 
         def createMiddleFrame(container):
             frame = ttk.Frame(container)
+            # configure the grid
+            frame.columnconfigure(0, weight=2)
+            frame.columnconfigure(1, weight=3)
+            frame.columnconfigure(2, weight=2)
+
+            photo=Image.open('pic.png')
+            img=photo.resize((150, 150))
+            image=ImageTk.PhotoImage(img)
+            image_label = ttk.Label(frame, image=image, compound='top')
+            image_label.image = image
+            image_label.grid(column=0, row=0, columnspan=3, padx=15, pady=15)
+
             return frame
 
 
-        
         root = tk.Tk()
         root.title('Information War Game')
         root.geometry('1000x600')
