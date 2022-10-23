@@ -33,11 +33,11 @@ class Blue:
     def __init__(self):
         self.energy = 100
         self.messages = {
-            "M1": {"cost": 1, "strength": 1, "message": None}, 
-            "M2": {"cost": 2, "strength": 2, "message": None},
-            "M3": {"cost": 3, "strength": 3, "message": None},
-            "M4": {"cost": 4, "strength": 4, "message": None},
-            "M5": {"cost": 5, "strength": 5, "message": None}
+            "M1": {"cost": 1, "strength": 0.1, "message": None}, 
+            "M2": {"cost": 2, "strength": 0.2, "message": None},
+            "M3": {"cost": 3, "strength": 0.3, "message": None},
+            "M4": {"cost": 4, "strength": 0.4, "message": None},
+            "M5": {"cost": 5, "strength": 0.5, "message": None}
         }
     
     # Introduce a Grey node
@@ -47,22 +47,24 @@ class Blue:
 
     # Decision making method for choosing a Blue agent action
     def chooseAction(self):
-        return
+        # Choosing random message
+        return random.choice(list(self.messages.values()))
 
 class Red:
     # Constructor
     def __init__(self, followers):
         self.followers = followers
         self.messages = {
-            "M1": {"cost": 1, "strength": 1, "message": None}, 
-            "M2": {"cost": 2, "strength": 2, "message": None},
-            "M3": {"cost": 3, "strength": 3, "message": None},
-            "M4": {"cost": 4, "strength": 4, "message": None},
-            "M5": {"cost": 5, "strength": 5, "message": None}
+            "M1": {"cost": 1, "strength": 0.1, "message": None}, 
+            "M2": {"cost": 2, "strength": 0.2, "message": None},
+            "M3": {"cost": 3, "strength": 0.3, "message": None},
+            "M4": {"cost": 4, "strength": 0.4, "message": None},
+            "M5": {"cost": 5, "strength": 0.5, "message": None}
         }
 
     def chooseAction(self):
-        return
+        # Choosing random message
+        return random.choice(list(self.messages.values()))
 
 class Green:
     # Constructor
@@ -136,9 +138,7 @@ class Game:
         self.graph.add_edges_from(adj)
         
         pos = nx.spring_layout(self.graph, pos=fixPos, fixed=self.nodes)
-        nx.draw_networkx_nodes(self.graph, pos=pos, node_color=colourMap, node_size=[30]*len(self.nodes))
-        nx.draw_networkx_edges(self.graph, pos=pos, edge_color=[clr]*len(self.graph.edges()))
-        # nx.draw(self.graph, pos = pos, with_labels=False, node_color=colourMap, edge_color=[clr]*len(self.graph.edges()), node_size=[30]*len(self.nodes))
+        nx.draw(self.graph, pos = pos, with_labels=False, node_color=colourMap, edge_color=[clr]*len(self.graph.edges()), node_size=[30]*len(self.nodes))
         
         labelPos = {}
         for p in pos.keys():
@@ -174,10 +174,6 @@ class Game:
                     self.greenAdj.append( (self.nodes[i], self.nodes[j]) )
 
     def checkWin(self):
-        # Voting Proportion
-        # Vote Majority - BLUE WIN
-        # No Voting Majority - RED WIN
-        
         certainVoters = 0
         certainNonVoters = 0
         for k in range(self.greenNum):
@@ -209,7 +205,7 @@ class Game:
             agent.uncertainty = -1
 
     # In the case of a red/blue to green interaction, @param agent1 is passed as red/blue
-    def interact(self, agent1, agent2):
+    def interact(self, agent1, agent2, message):
         # Interaction between 2 green nodes
         if (type(agent1) == Green and type(agent2) == Green):
             # print(f"Old:\n\t1. Vote = {agent1.vote}, Unc = {agent1.uncertainty}\n\t2. Vote = {agent2.vote}, Unc = {agent2.uncertainty}")
@@ -229,25 +225,35 @@ class Game:
                 
             # print(f"New:\n\t1. Vote = {agent1.vote}, Unc = {agent1.uncertainty}\n\t2. Vote = {agent2.vote}, Unc = {agent2.uncertainty}")
         else:
-            # change green uncertainty/opinion only
-            # if (blue):
-            # else:
-            pass
+            if (type(agent1) == Blue):
+                if (agent2.vote):   # Voter
+                    self.calcUncertainty(agent2, message["strength"], False)
+                else:               # Non-voter
+                    self.calcUncertainty(agent2, message["strength"], True)
+            else:
+                if (agent2.vote):   # Voter
+                    self.calcUncertainty(agent2, message["strength"], True)
+                else:               # Non-voter
+                    self.calcUncertainty(agent2, message["strength"], False)
     
     def socialise(self):
         for edge in self.greenAdj:
-                self.interact(edge[0], edge[1])
+                self.interact(edge[0], edge[1], None)
         return
     
     # Broadcasting message to all Green nodes
     def broadcast(self, message, receivers, team, penalty):
         if (team == "blue"):
-            # broadcast message
+            # broadcast message to all receivers
+            for node in receivers:
+                self.interact(node[0], node[1], message)
             if (penalty):
                 pass
                 # lose energy
         else: # red team
-            # broadcast message
+            # broadcast message to all receivers
+            for node in receivers:
+                self.interact(node[0], node[1], message)
             if (penalty):
                 pass
                 # lose follower
@@ -260,11 +266,13 @@ class Game:
         win = self.checkWin()
         while (win == 0):
             # Red
-            self.nodes[1].chooseAction()
+            redMsg = self.nodes[1].chooseAction()
+            self.broadcast(redMsg, self.redAdj, "red", False)
             
             self.showGraph(self.redAdj, (1,0,0,0.4))
             # Blue
-            self.nodes[0].chooseAction()
+            blueMsg = self.nodes[0].chooseAction()
+            self.broadcast(blueMsg, self.blueAdj, "blue", False)
             self.showGraph(self.blueAdj, (0,0,1,0.4))
             
             # Grey
@@ -359,8 +367,8 @@ class Game:
     
 def main():
     G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE)
-    # G1.initGame()
-    G1.showWindow()
+    G1.initGame()
+    # G1.showWindow()
     # a1 = Green(True, -0.7)
     # a2 = Green(True, 0.2)
     # G1.interact(a1, a2)
