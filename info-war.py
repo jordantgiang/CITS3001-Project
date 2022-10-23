@@ -10,6 +10,7 @@ import random
 import time
 import tkinter as tk
 from tkinter import ttk
+import sv_ttk
 
 # Global Constants
 # --------------------------------------------------- 
@@ -95,7 +96,7 @@ class Game:
         
         self.graph = nx.Graph()
         # List of
-        self.nodes = []
+        self.nodes = [] # first node is Blue, second node is Red, the rest is green 
         self.greenAdj = []
         self.redAdj = []
         self.blueAdj = []
@@ -296,27 +297,131 @@ class Game:
 # GUI
 # -------------------------------------------------------------
 
-
     def showWindow(self):
 
-        def button_clicked(option):
-            print('Button clicked:',option)
+        def getInputs(inputs):
+            print('test')
+            print('inputs',inputs)
+            for input in inputs:
+                print("inputval:",input.get())
         
         root = tk.Tk()
         root.title('Information War Game')
-        root.geometry('600x400+50+50')
+        root.geometry('730x350+50+50')
         root.iconbitmap('./logo.ico')
+        sv_ttk.set_theme("light")
+        style = ttk.Style()
+        style.configure('TLabel', background="#cedaf2")
 
-        # place a label on the root window
-        message = ttk.Label(root, text="Information War Game", font=("Rockwell", 14))
-        message.pack()
+        frame = tk.Frame(root,bg="#cedaf2")
+        frame.pack(ipadx=40, ipady=20,fill="both", expand=True)
 
-        # place a button on the root window
-        ttk.Button(root, text='Click Me', command=button_clicked('Hello')).pack()
+        # configure the grid
+        frame.columnconfigure(0, weight=2)
+        frame.columnconfigure(1, weight=3)
+        frame.columnconfigure(2, weight=2)
+        frame.columnconfigure(3, weight=3)
+
+        # place a title label on the frame window
+        ttk.Label(frame, text="Information War Game", font=("Rockwell", 14)).grid(column=0, row=0, columnspan=4, padx=5, pady=20)
+
+        # input fields
+        inputLables = [["Number of Green Agents:","green_num"], ["Connection Probability:","con_prob"], ["Number of Grey Agents:","grey_num"], ["Proportion of Grey Spies:","spies_prop"],
+                        ["Uncertainty Interval (min):","unc_min"], ["Uncertainty Interval (max):","unc_max"], ["Initial porportion of voters","voters_prop"], ["Number of rounds","round_num"]]
+        inputVal = []
+        for i in range(len(inputLables)):
+            ttk.Label(frame, text=inputLables[i][0]).grid(column=(i*2)%4, row=i//2 +1, sticky=tk.W, padx=15, pady=5)
+            text = tk.StringVar()
+            entry = ttk.Entry(frame,textvariable=text)
+            entry.grid(column=(i*2+1)%4, row=i//2+1, sticky=tk.W, padx=8, pady=5)
+            inputVal.append(text)
+        
+        inputVal += [tk.StringVar(),tk.StringVar()]
+
+        ttk.Label(frame, text="Red Team Player:").grid(column=0, row=5, sticky=tk.W, padx=15, pady=5)
+        ttk.OptionMenu(frame, inputVal[-2],"AI",*["AI","Human"]).grid(column=1, row=5, sticky=tk.W, padx=8, pady=5)
+        ttk.Label(frame, text="Red Team Player:").grid(column=2, row=5, sticky=tk.W, padx=15, pady=5)
+        ttk.OptionMenu(frame, inputVal[-1],"AI",*["AI","Human"]).grid(column=3, row=5, sticky=tk.W, padx=8, pady=5)
+        
+        # place a button on the frame window
+        ttk.Button(frame, text='Start Simulation', command=lambda: getInputs(inputVal)).grid(column=0, row=6, columnspan=4, pady=8, ipadx=8, ipady=4)
 
         # keep the window displaying
-        root.mainloop()
+        frame.mainloop()
 
+    def showWindow2(self):
+        def getSelectedMessage(selected_message):
+            print(selected_message.get())
+
+        def createSideFrame(container,left):
+            frame = ttk.Frame(container)
+            # configure the grid
+            frame.columnconfigure(0, weight=2)
+            frame.columnconfigure(1, weight=3)
+            frame.columnconfigure(2, weight=2)
+
+            # energy = self.nodes[0].energy
+            energy = 100
+            
+            ttk.Label(frame, text="RED TEAM" if left else "BLUE TEAM").grid(column=0, row=0, columnspan=3, padx=15, pady=5)
+            ttk.Label(frame, text=f"Number of followers: {len(self.redAdj)}" if left else f"Energy left: {energy}").grid(column=0, row=1, columnspan=3, padx=15, pady=5)
+            ttk.Label(frame, text=f"Select a message below").grid(column=0, row=2, columnspan=3, padx=15, pady=5)
+            ttk.Label(frame, text=f"Message").grid(column=0, row=3, padx=15, pady=5)
+            ttk.Label(frame, text=f"Strength").grid(column=1, row=3, padx=15, pady=5)
+            ttk.Label(frame, text=f"Followers loss").grid(column=2, row=3, padx=15, pady=5)
+
+            # messages = self.nodes[1].messages if left else self.nodes[0].messages
+            # dummyMessage below
+            messages =  {
+                            "M1": {"cost": 1, "strength": 1, "message": "Blue is racist"}, 
+                            "M2": {"cost": 2, "strength": 2, "message": "Blue support child labour"},
+                            "M3": {"cost": 3, "strength": 3, "message": "Blue corrupts"},
+                            "M4": {"cost": 4, "strength": 4, "message": "Blue support human experiments"},
+                            "M5": {"cost": 5, "strength": 5, "message": "Blue uses birds to stalk people"}
+                            }      
+            msgKeys = list(messages.keys())
+            selected_message = tk.StringVar()
+            for i in range(len(messages)):
+                r = ttk.Radiobutton(frame, text=f"{messages[msgKeys[i]]['message']}",value=msgKeys[i],variable=selected_message).grid(column=0, row=i+4, sticky=tk.W, padx=15, pady=5)
+                ttk.Label(frame, text=f"{messages[msgKeys[i]]['strength']}").grid(column=1, row=i+4, padx=15, pady=5)
+                ttk.Label(frame, text=f"{messages[msgKeys[i]]['cost']}").grid(column=2, row=i+4, padx=15, pady=5)
+
+            button = ttk.Button(frame, text="Send Message", command=lambda:getSelectedMessage(selected_message)).grid(column=0, row=10, columnspan=3, padx=15, pady=15)
+            return frame
+
+        def createMiddleFrame(container):
+            frame = ttk.Frame(container)
+            return frame
+
+
+        
+        root = tk.Tk()
+        root.title('Information War Game')
+        root.geometry('1000x600')
+        root.iconbitmap('./logo.ico')
+        # sv_ttk.set_theme("light")
+        style = ttk.Style()
+        style.configure('TLabel', background="#cedaf2")
+        style.configure('TFrame', background="#cedaf2")
+        style.configure('TRadiobutton', background="#cedaf2")
+        root.configure(background="#cedaf2")
+
+        # layout on the root window
+        root.columnconfigure(0, weight=1)
+        root.columnconfigure(1, weight=1)
+        root.columnconfigure(2, weight=1)
+
+        
+        leftFrame = createSideFrame(root, True)
+        leftFrame.grid(column=0, row=0)
+
+        middleFrame = createMiddleFrame(root)
+        middleFrame.grid(column=1, row=0)
+
+        rightFrame = createSideFrame(root, False)
+        rightFrame.grid(column=2, row=0)
+
+        root.mainloop()
     
 
 # Functions
@@ -360,7 +465,7 @@ class Game:
 def main():
     G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE)
     # G1.initGame()
-    G1.showWindow()
+    G1.showWindow2()
     # a1 = Green(True, -0.7)
     # a2 = Green(True, 0.2)
     # G1.interact(a1, a2)
