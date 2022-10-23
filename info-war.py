@@ -31,7 +31,7 @@ INTERACTION_COEFF = 0.1 # Scaling coefficient of an interaction uncertainty calc
 class Blue:
     # Constructor
     def __init__(self):
-        self.energy = 100
+        self.energy = 20
         self.messages = {
             "M1": {"cost": 1, "strength": 0.1, "message": None}, 
             "M2": {"cost": 2, "strength": 0.2, "message": None},
@@ -48,18 +48,24 @@ class Blue:
     # Decision making method for choosing a Blue agent action
     def chooseAction(self):
         # Choosing random message
-        return random.choice(list(self.messages.values()))
+        print(f"Energy: {self.energy}")
+        if (self.energy == 0):
+            return -1
+        while (True):
+            msg = random.choice(list(self.messages.values()))
+            if (msg["cost"] <= self.energy):
+                return msg
 
 class Red:
     # Constructor
     def __init__(self, followers):
         self.followers = followers
         self.messages = {
-            "M1": {"cost": 1, "strength": 0.1, "message": None}, 
-            "M2": {"cost": 2, "strength": 0.2, "message": None},
-            "M3": {"cost": 3, "strength": 0.3, "message": None},
-            "M4": {"cost": 4, "strength": 0.4, "message": None},
-            "M5": {"cost": 5, "strength": 0.5, "message": None}
+            "M1": {"loss": 0.01, "strength": 0.1, "message": None}, 
+            "M2": {"loss": 0.02, "strength": 0.2, "message": None},
+            "M3": {"loss": 0.03, "strength": 0.3, "message": None},
+            "M4": {"loss": 0.04, "strength": 0.4, "message": None},
+            "M5": {"loss": 0.05, "strength": 0.5, "message": None}
         }
 
     def chooseAction(self):
@@ -146,7 +152,7 @@ class Game:
         
         nx.draw_networkx_labels(self.graph, pos=labelPos, labels=voteList, font_size=9)
         # plt.show()
-        plt.pause(1)
+        plt.pause(0.3)
 
     # Creates an initial game state graph 
     def createPop(self):
@@ -248,14 +254,15 @@ class Game:
             for node in receivers:
                 self.interact(node[0], node[1], message)
             if (penalty):
-                pass
-                # lose energy
+                self.nodes[0].energy -= message["cost"]
         else: # red team
             # broadcast message to all receivers
             for node in receivers:
                 self.interact(node[0], node[1], message)
             if (penalty):
-                pass
+                for node in receivers:
+                    if (random.random() < message["loss"]):
+                        self.redAdj.remove(node)
                 # lose follower
         return
     
@@ -267,13 +274,18 @@ class Game:
         while (win == 0):
             # Red
             redMsg = self.nodes[1].chooseAction()
-            self.broadcast(redMsg, self.redAdj, "red", False)
-            
-            self.showGraph(self.redAdj, (1,0,0,0.4))
+            if (len(self.redAdj) == 0):
+                print("NO MORE FOLLOWERS")
+            else:
+                self.broadcast(redMsg, self.redAdj, "red", True)
+                self.showGraph(self.redAdj, (1,0,0,0.4))
             # Blue
             blueMsg = self.nodes[0].chooseAction()
-            self.broadcast(blueMsg, self.blueAdj, "blue", False)
-            self.showGraph(self.blueAdj, (0,0,1,0.4))
+            if (blueMsg == -1):
+                print("NO MORE ENERGY")
+            else:
+                self.broadcast(blueMsg, self.blueAdj, "blue", False)
+                self.showGraph(self.blueAdj, (0,0,1,0.4))
             
             # Grey
             
