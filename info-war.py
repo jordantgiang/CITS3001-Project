@@ -32,38 +32,43 @@ INTERACTION_COEFF = 0.1 # Scaling coefficient of an interaction uncertainty calc
 class Blue:
     # Constructor
     def __init__(self):
-        self.energy = 100
+        self.energy = 20
         self.messages = {
-            "M1": {"cost": 1, "strength": 1, "message": None}, 
-            "M2": {"cost": 2, "strength": 2, "message": None},
-            "M3": {"cost": 3, "strength": 3, "message": None},
-            "M4": {"cost": 4, "strength": 4, "message": None},
-            "M5": {"cost": 5, "strength": 5, "message": None}
+            "M1": {"cost": 1, "strength": 0.1, "message": None}, 
+            "M2": {"cost": 2, "strength": 0.2, "message": None},
+            "M3": {"cost": 3, "strength": 0.3, "message": None},
+            "M4": {"cost": 4, "strength": 0.4, "message": None},
+            "M5": {"cost": 5, "strength": 0.5, "message": None}
         }
-    
-    # Introduce a Grey node
-    def introduceGrey(self):
-        # Grey agent turn
-        return
-
     # Decision making method for choosing a Blue agent action
-    def chooseAction(self):
-        return
+    def chooseAction(self, greyAgents):
+        # Randomly chooses between grey node and broadcast
+        if (len(greyAgents) != 0 and random.random() > 0.1):
+            return 1
+        # Choosing random message
+        print(f"Energy: {self.energy}")
+        if (self.energy == 0):
+            return -1
+        while (True):
+            msg = random.choice(list(self.messages.values()))
+            if (msg["cost"] <= self.energy):
+                return msg
 
 class Red:
     # Constructor
     def __init__(self, followers):
         self.followers = followers
         self.messages = {
-            "M1": {"cost": 1, "strength": 1, "message": None}, 
-            "M2": {"cost": 2, "strength": 2, "message": None},
-            "M3": {"cost": 3, "strength": 3, "message": None},
-            "M4": {"cost": 4, "strength": 4, "message": None},
-            "M5": {"cost": 5, "strength": 5, "message": None}
+            "M1": {"loss": 0.01, "strength": 0.1, "message": None}, 
+            "M2": {"loss": 0.02, "strength": 0.2, "message": None},
+            "M3": {"loss": 0.03, "strength": 0.3, "message": None},
+            "M4": {"loss": 0.04, "strength": 0.4, "message": None},
+            "M5": {"loss": 0.05, "strength": 0.5, "message": None}
         }
 
     def chooseAction(self):
-        return
+        # Choosing random message
+        return random.choice(list(self.messages.values()))
 
 class Green:
     # Constructor
@@ -78,6 +83,10 @@ class Grey:
         self.spy = spy
     
     def influence(self):
+        if (self.spy):
+            print("sneakily INFLUENCING")
+        else:
+            print("INFLUENCING")
         return
 
 
@@ -112,19 +121,32 @@ class Game:
         
         fixPos = {}
         nrows = math.ceil(math.sqrt(self.greenNum))
-        
+        greyCount = 0
         for i in range(len(self.nodes)):
             node = self.nodes[i]
             # If blue node
-            if node.__class__.__name__ == "Blue":
+            if type(node) == Blue:
                 colourMap.append("blue")
                 voteList[node] = "Blue"
                 fixPos[node] = (-nrows//3, nrows)
             # If red node
-            elif node.__class__.__name__ == "Red":
+            elif type(node) == Red:
                 colourMap.append("red")
                 voteList[node] = "Red"
                 fixPos[node] = (nrows//3 + nrows, nrows)
+            elif type(node) == Grey:
+                greyCount += 1
+                if node == adj[0][0]:
+                    if node.spy:
+                        colourMap.append("red")
+                        voteList[node] = "Spy"
+                    else:
+                        colourMap.append("blue")
+                        voteList[node] = "Influencer"
+                else:
+                    colourMap.append("grey")
+                    voteList[node] = "?"
+                fixPos[node] = (-nrows//3, nrows - greyCount)
             else:
                 fixPos[node] = ((i-2) % nrows, (i-2) // nrows)
                 if node.vote:
@@ -137,9 +159,7 @@ class Game:
         self.graph.add_edges_from(adj)
         
         pos = nx.spring_layout(self.graph, pos=fixPos, fixed=self.nodes)
-        nx.draw_networkx_nodes(self.graph, pos=pos, node_color=colourMap, node_size=[30]*len(self.nodes))
-        nx.draw_networkx_edges(self.graph, pos=pos, edge_color=[clr]*len(self.graph.edges()))
-        # nx.draw(self.graph, pos = pos, with_labels=False, node_color=colourMap, edge_color=[clr]*len(self.graph.edges()), node_size=[30]*len(self.nodes))
+        nx.draw(self.graph, pos = pos, with_labels=False, node_color=colourMap, edge_color=[clr]*len(self.graph.edges()), node_size=[30]*len(self.nodes))
         
         labelPos = {}
         for p in pos.keys():
@@ -173,12 +193,14 @@ class Game:
             for j in range(i+1, 2+self.greenNum):
                 if (random.random() < self.connectProb):
                     self.greenAdj.append( (self.nodes[i], self.nodes[j]) )
+        
+        for i in range(self.greyNum):
+            spy = False
+            if (i < self.greyNum * self.spyProp):
+                spy = True
+            self.nodes.append(Grey(spy))
 
     def checkWin(self):
-        # Voting Proportion
-        # Vote Majority - BLUE WIN
-        # No Voting Majority - RED WIN
-        
         certainVoters = 0
         certainNonVoters = 0
         for k in range(self.greenNum):
@@ -210,7 +232,7 @@ class Game:
             agent.uncertainty = -1
 
     # In the case of a red/blue to green interaction, @param agent1 is passed as red/blue
-    def interact(self, agent1, agent2):
+    def interact(self, agent1, agent2, message):
         # Interaction between 2 green nodes
         if (type(agent1) == Green and type(agent2) == Green):
             # print(f"Old:\n\t1. Vote = {agent1.vote}, Unc = {agent1.uncertainty}\n\t2. Vote = {agent2.vote}, Unc = {agent2.uncertainty}")
@@ -230,43 +252,76 @@ class Game:
                 
             # print(f"New:\n\t1. Vote = {agent1.vote}, Unc = {agent1.uncertainty}\n\t2. Vote = {agent2.vote}, Unc = {agent2.uncertainty}")
         else:
-            # change green uncertainty/opinion only
-            # if (blue):
-            # else:
-            pass
+            if (type(agent1) == Blue):
+                if (agent2.vote):   # Voter
+                    self.calcUncertainty(agent2, message["strength"], False)
+                else:               # Non-voter
+                    self.calcUncertainty(agent2, message["strength"], True)
+            else:
+                if (agent2.vote):   # Voter
+                    self.calcUncertainty(agent2, message["strength"], True)
+                else:               # Non-voter
+                    self.calcUncertainty(agent2, message["strength"], False)
     
     def socialise(self):
         for edge in self.greenAdj:
-                self.interact(edge[0], edge[1])
+                self.interact(edge[0], edge[1], None)
         return
     
     # Broadcasting message to all Green nodes
     def broadcast(self, message, receivers, team, penalty):
         if (team == "blue"):
-            # broadcast message
+            # broadcast message to all receivers
+            for node in receivers:
+                self.interact(node[0], node[1], message)
             if (penalty):
-                pass
-                # lose energy
+                self.nodes[0].energy -= message["cost"]
         else: # red team
-            # broadcast message
+            # broadcast message to all receivers
+            for node in receivers:
+                self.interact(node[0], node[1], message)
             if (penalty):
-                pass
+                for node in receivers:
+                    if (random.random() < message["loss"]):
+                        self.redAdj.remove(node)
                 # lose follower
         return
     
     def endGame(self):
         return
     
-    def runGame(self, greyAgents):
+    def runGame(self):
         win = self.checkWin()
+        isGrey = True
         while (win == 0):
+            if (len(self.nodes) == self.greenNum + 2 and isGrey):
+                print("NO GREY AGENTS LEFT")
+                isGrey = False
             # Red
-            self.nodes[1].chooseAction()
+            redMsg = self.nodes[1].chooseAction()
+            if (len(self.redAdj) == 0):
+                print("NO MORE FOLLOWERS")
+            else:
+                self.broadcast(redMsg, self.redAdj, "red", True)
+                self.showGraph(self.redAdj, (1,0,0,0.4))
             
-            self.showGraph(self.redAdj, (1,0,0,0.4))
             # Blue
-            self.nodes[0].chooseAction()
-            self.showGraph(self.blueAdj, (0,0,1,0.4))
+            blueMsg = self.nodes[0].chooseAction(self.nodes[self.greenNum + 2:])
+            if (blueMsg == 1):
+                grey = random.choice(list(self.nodes[self.greenNum + 2:]))
+                # greyAdj = []
+                # for green in self.nodes:
+                #     if (type(green) == Green):
+                #         greyAdj.append( (grey, green) )
+                greyAdj = list(zip([grey]*self.greenNum, self.nodes[2:self.greenNum+2]))
+                grey.influence()
+                self.showGraph(greyAdj, (108, 122, 137, 0.4) )
+                self.nodes.remove(grey)
+            elif (blueMsg == -1):
+                print("NO MORE ENERGY")
+            else:
+                self.broadcast(blueMsg, self.blueAdj, "blue", False)
+                self.showGraph(self.blueAdj, (0,0,1,0.4))
             
             # Grey
             
@@ -286,13 +341,13 @@ class Game:
 
     def initGame(self):
         self.createPop()
-        greys = []
-        for i in range(self.greyNum):
-            spy = False
-            if (i < self.greyNum * self.spyProp):
-                spy = True
-            greys.append(Grey(spy))
-        self.runGame(greys)
+        # greys = []
+        # for i in range(self.greyNum):
+        #     spy = False
+        #     if (i < self.greyNum * self.spyProp):
+        #         spy = True
+        #     greys.append(Grey(spy))
+        self.runGame()
 
 # GUI
 # -------------------------------------------------------------
