@@ -421,12 +421,12 @@ class Game:
             # energy = self.nodes[0].energy
             energy = 100
             
-            ttk.Label(frame, text="RED TEAM" if left else "BLUE TEAM").grid(column=0, row=0, columnspan=3, padx=15, pady=5)
+            ttk.Label(frame, text="RED TEAM" if left else "BLUE TEAM",font=("Rockwell", 14)).grid(column=0, row=0, columnspan=3, padx=15, pady=18)
             ttk.Label(frame, text=f"Number of followers: {len(self.redAdj)}" if left else f"Energy left: {energy}").grid(column=0, row=1, columnspan=3, padx=15, pady=5)
             ttk.Label(frame, text=f"Select a message below").grid(column=0, row=2, columnspan=3, padx=15, pady=5)
             ttk.Label(frame, text=f"Message").grid(column=0, row=3, padx=15, pady=5)
             ttk.Label(frame, text=f"Strength").grid(column=1, row=3, padx=15, pady=5)
-            ttk.Label(frame, text=f"Followers loss").grid(column=2, row=3, padx=15, pady=5)
+            ttk.Label(frame, text=f"Followers loss"if left else "Energy Lost").grid(column=2, row=3, padx=15, pady=5)
 
             # messages = self.nodes[1].messages if left else self.nodes[0].messages
             # dummyMessage below
@@ -458,7 +458,7 @@ class Game:
             frame.columnconfigure(2, weight=2)
 
             photo=Image.open('pic.png')
-            img=photo.resize((150, 150))
+            img=photo.resize((200, 200))
             image=ImageTk.PhotoImage(img)
             image_label = ttk.Label(frame, image=image, compound='top')
             image_label.image = image
@@ -469,7 +469,7 @@ class Game:
 
         root = tk.Tk()
         root.title('Information War Game')
-        root.geometry('1000x600')
+        root.geometry('1200x600')
         root.iconbitmap('./logo.ico')
         # sv_ttk.set_theme("light")
         style = ttk.Style()
