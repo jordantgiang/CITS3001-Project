@@ -18,7 +18,7 @@ from PIL import Image, ImageTk
 # --------------------------------------------------- 
 # Inputs
 GREY_NUM = 8 # Number of grey agent
-GREEN_NUM = 25 # Number of green agent
+GREEN_NUM = 90 # Number of green agent
 CON_PROB = 0.03 # Probability of initial connection between any 2 green nodes
 SPY_PROP = 0.2 # Proportion of agents who are spies from the red team
 UNC_RANGE = (-0.5, 0.3) # Initial uncertainty range for green nodes
@@ -34,7 +34,7 @@ INTERACTION_COEFF = 0.1 # Scaling coefficient of an interaction uncertainty calc
 class Blue:
     # Constructor
     def __init__(self):
-        self.energy = 20
+        self.energy = 100
         self.messages = {
             "M1": {"cost": 1, "strength": 0.1, "message": None}, 
             "M2": {"cost": 2, "strength": 0.2, "message": None},
@@ -45,7 +45,7 @@ class Blue:
     # Decision making method for choosing a Blue agent action
     def chooseAction(self, greyAgents):
         # Randomly chooses between grey node and broadcast
-        if (len(greyAgents) != 0 and random.random() > 0.1):
+        if (len(greyAgents) != 0 and random.random() < 0.1):
             return 1
         # Choosing random message
         print(f"Energy: {self.energy}")
@@ -169,7 +169,7 @@ class Game:
         
         nx.draw_networkx_labels(self.graph, pos=labelPos, labels=voteList, font_size=9)
         # plt.show()
-        plt.pause(1)
+        plt.pause(0.3)
 
     # Creates an initial game state graph 
     def createPop(self):
@@ -311,18 +311,17 @@ class Game:
             blueMsg = self.nodes[0].chooseAction(self.nodes[self.greenNum + 2:])
             if (blueMsg == 1):
                 grey = random.choice(list(self.nodes[self.greenNum + 2:]))
-                # greyAdj = []
-                # for green in self.nodes:
-                #     if (type(green) == Green):
-                #         greyAdj.append( (grey, green) )
                 greyAdj = list(zip([grey]*self.greenNum, self.nodes[2:self.greenNum+2]))
-                grey.influence()
+                if (grey.spy):
+                    self.broadcast(self.nodes[1].messages["M5"], greyAdj, "red", False)
+                else:
+                    self.broadcast(self.nodes[0].messages["M5"], greyAdj, "blue", False)
                 self.showGraph(greyAdj, (108, 122, 137, 0.4) )
                 self.nodes.remove(grey)
             elif (blueMsg == -1):
                 print("NO MORE ENERGY")
             else:
-                self.broadcast(blueMsg, self.blueAdj, "blue", False)
+                self.broadcast(blueMsg, self.blueAdj, "blue", True)
                 self.showGraph(self.blueAdj, (0,0,1,0.4))
             
             # Grey

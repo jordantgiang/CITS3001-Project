@@ -17,6 +17,7 @@
 - Blue select action
     - message or grey agent
         - random now, minimax later
+# COMPLETED
 
 # POINT 9
 # -------------------------------------
