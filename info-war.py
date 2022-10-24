@@ -42,6 +42,7 @@ class Blue:
             "M4": {"cost": 4, "strength": 0.4, "message": None},
             "M5": {"cost": 5, "strength": 0.5, "message": None}
         }
+    
     # Decision making method for choosing a Blue agent action
     def chooseAction(self, greyAgents):
         # Randomly chooses between grey node and broadcast
@@ -340,14 +341,8 @@ class Game:
             print("RED WINS")
         self.endGame()
 
-    def initGame(self):
+    def initGame(self, ):
         self.createPop()
-        # greys = []
-        # for i in range(self.greyNum):
-        #     spy = False
-        #     if (i < self.greyNum * self.spyProp):
-        #         spy = True
-        #     greys.append(Grey(spy))
         self.runGame()
 
 # GUI
@@ -536,8 +531,8 @@ class Game:
     
 def main():
     G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE)
-    # G1.initGame()
-    G1.showWindow2()
+    G1.initGame()
+    # G1.showWindow2()
     # a1 = Green(True, -0.7)
     # a2 = Green(True, 0.2)
     # G1.interact(a1, a2)
