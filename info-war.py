@@ -17,12 +17,12 @@ from PIL import Image, ImageTk
 # Global Constants
 # --------------------------------------------------- 
 # Inputs
-GREY_NUM = 8 # Number of grey agent
-GREEN_NUM = 90 # Number of green agent
-CON_PROB = 0.03 # Probability of initial connection between any 2 green nodes
-SPY_PROP = 0.2 # Proportion of agents who are spies from the red team
-UNC_RANGE = (-0.5, 0.3) # Initial uncertainty range for green nodes
-INIT_VOTE = 0.7 # Percentage of green nodes with voting opinion
+GREY_NUM = 20 # Number of grey agent
+GREEN_NUM = 25  # Number of green agent
+CON_PROB = 0.15 # Probability of initial connection between any 2 green nodes
+SPY_PROP = 0.1 # Proportion of agents who are spies from the red team
+UNC_RANGE = (-0.5, 0.5) # Initial uncertainty range for green nodes
+INIT_VOTE = 0.5 # Percentage of green nodes with voting opinion
 
 # Game settings
 WIN_THRESHOLD = 0.6 # Proportion of population required with agreeing certain (uncertainty < 0) opinions for red/blue to win.
@@ -49,7 +49,7 @@ class Blue:
         if (len(greyAgents) != 0 and random.random() < 0.1):
             return 1
         # Choosing random message
-        print(f"Energy: {self.energy}")
+        # print(f"Energy: {self.energy}")
         if (self.energy == 0):
             return -1
         while (True):
@@ -62,16 +62,18 @@ class Red:
     def __init__(self, followers):
         self.followers = followers
         self.messages = {
-            "M1": {"loss": 0.01, "strength": 0.1, "message": None}, 
-            "M2": {"loss": 0.02, "strength": 0.2, "message": None},
-            "M3": {"loss": 0.03, "strength": 0.3, "message": None},
-            "M4": {"loss": 0.04, "strength": 0.4, "message": None},
-            "M5": {"loss": 0.05, "strength": 0.5, "message": None}
+            "M1": {"loss": 0.005, "strength": 0.4, "message": None}, 
+            "M2": {"loss": 0.01, "strength": 0.5, "message": None},
+            "M3": {"loss": 0.015, "strength": 0.6, "message": None},
+            "M4": {"loss": 0.02, "strength": 0.7, "message": None},
+            "M5": {"loss": 0.025, "strength": 0.8, "message": None}
         }
 
     def chooseAction(self):
         # Choosing random message
-        return random.choice(list(self.messages.values()))
+        # return random.choice(list(self.messages.values()))
+        
+        return self.messages["M5"]
 
 class Green:
     # Constructor
@@ -84,13 +86,10 @@ class Grey:
     # Constructor
     def __init__(self, spy):
         self.spy = spy
-    
-    def influence(self):
-        if (self.spy):
-            print("sneakily INFLUENCING")
-        else:
-            print("INFLUENCING")
-        return
+        self.messages = {
+            "BLUE": {"cost": 5, "strength": 0.5, "message": None},
+            "RED": {"loss": 0.05, "strength": 1, "message": None}
+        }
 
 
 # Classes for game
@@ -139,7 +138,7 @@ class Game:
                 fixPos[node] = (nrows//3 + nrows, nrows)
             elif type(node) == Grey:
                 greyCount += 1
-                if node == adj[0][0]:
+                if len(adj) != 0 and node == adj[0][0]:
                     if node.spy:
                         colourMap.append("red")
                         voteList[node] = "Spy"
@@ -172,6 +171,16 @@ class Game:
         # plt.show()
         plt.pause(0.3)
 
+    # Create green node network connections
+    def connectGreen(self):
+        self.greenAdj = []
+        
+        # Generate initial random edges
+        for i in range(2, 2+self.greenNum):
+            for j in range(i+1, 2+self.greenNum):
+                if (random.random() < self.connectProb):
+                    self.greenAdj.append( (self.nodes[i], self.nodes[j]) )
+    
     # Creates an initial game state graph 
     def createPop(self):
         
@@ -298,15 +307,15 @@ class Game:
         isGrey = True
         while (win == 0):
             if (len(self.nodes) == self.greenNum + 2 and isGrey):
-                print("NO GREY AGENTS LEFT")
+                pass
                 isGrey = False
             # Red
             redMsg = self.nodes[1].chooseAction()
             if (len(self.redAdj) == 0):
-                print("NO MORE FOLLOWERS")
+                pass
             else:
                 self.broadcast(redMsg, self.redAdj, "red", True)
-                self.showGraph(self.redAdj, (1,0,0,0.4))
+                # self.showGraph(self.redAdj, (1,0,0,0.4))
             
             # Blue
             blueMsg = self.nodes[0].chooseAction(self.nodes[self.greenNum + 2:])
@@ -314,36 +323,35 @@ class Game:
                 grey = random.choice(list(self.nodes[self.greenNum + 2:]))
                 greyAdj = list(zip([grey]*self.greenNum, self.nodes[2:self.greenNum+2]))
                 if (grey.spy):
-                    self.broadcast(self.nodes[1].messages["M5"], greyAdj, "red", False)
+                    self.broadcast(grey.messages["RED"], greyAdj, "red", False)
                 else:
-                    self.broadcast(self.nodes[0].messages["M5"], greyAdj, "blue", False)
-                self.showGraph(greyAdj, (108, 122, 137, 0.4) )
+                    self.broadcast(grey.messages["BLUE"], greyAdj, "blue", False)
+                # self.showGraph(greyAdj, (108, 122, 137, 0.4) )
                 self.nodes.remove(grey)
             elif (blueMsg == -1):
-                print("NO MORE ENERGY")
+                pass
             else:
                 self.broadcast(blueMsg, self.blueAdj, "blue", True)
-                self.showGraph(self.blueAdj, (0,0,1,0.4))
-            
-            # Grey
+                # self.showGraph(self.blueAdj, (0,0,1,0.4))
             
             # Green
             self.socialise()
-            self.showGraph(self.greenAdj, (0,1,0,0.4))
-                
+            # self.showGraph(self.greenAdj, (0,1,0,0.4))
+            
+            self.connectGreen()
             
             # Check win
             win = self.checkWin()
             
-        if win==1:
-            print("BLUE WINS")
-        elif win==2:
-            print("RED WINS")
-        self.endGame()
+        # if win==1:
+        #     print("BLUE WINS")
+        # elif win==2:
+        #     print("RED WINS")
+        return win
 
     def initGame(self, ):
         self.createPop()
-        self.runGame()
+        return self.runGame()
 
 # GUI
 # -------------------------------------------------------------
@@ -530,8 +538,19 @@ class Game:
 # initGameDefault("node-attributes","network-2.csv")
     
 def main():
-    G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE)
-    G1.initGame()
+    blue = 0
+    red = 0
+    total = 1000
+    for i in range(total):
+        G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE)
+        result = G1.initGame()
+        
+        if result == 1:
+            blue += 1
+        else:
+            red += 1
+            
+    print(f"Blue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%")
     # G1.showWindow2()
     # a1 = Green(True, -0.7)
     # a2 = Green(True, 0.2)
