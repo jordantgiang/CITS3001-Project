@@ -113,19 +113,24 @@ class Game:
         self.blueAdj = []
 
     # Visualisation of the current game state graph
-    def showGraph(self, adj, clr):
+    def showGraph(self, adj, clr, grey=None):
         plt.clf()
         self.graph.clear()
         colourMap = []
         voteList = {}
         
-        self.graph.add_nodes_from(self.nodes)
+        gNodes = self.nodes[:self.greenNum + 2]
+        if grey == None:
+            gNodes.append(self.nodes[self.greenNum+2])
+        else:
+            gNodes.append(grey)
+            
+        self.graph.add_nodes_from(gNodes)
         
         fixPos = {}
         nrows = math.ceil(math.sqrt(self.greenNum))
-        greyCount = 0
-        for i in range(len(self.nodes)):
-            node = self.nodes[i]
+        for i in range(len(gNodes)):
+            node = gNodes[i]
             # If blue node
             if type(node) == Blue:
                 colourMap.append("blue")
@@ -137,8 +142,7 @@ class Game:
                 voteList[node] = "Red"
                 fixPos[node] = (nrows//3 + nrows, nrows)
             elif type(node) == Grey:
-                greyCount += 1
-                if len(adj) != 0 and node == adj[0][0]:
+                if grey!=None:
                     if node.spy:
                         colourMap.append("red")
                         voteList[node] = "Spy"
@@ -147,21 +151,23 @@ class Game:
                         voteList[node] = "Influencer"
                 else:
                     colourMap.append("grey")
-                    voteList[node] = "?"
-                fixPos[node] = (-nrows//3, nrows - greyCount)
+                    voteList[node] = f"x{len(self.nodes) - (self.greenNum + 2)}"
+                fixPos[node] = (-nrows//3, nrows - 1)
             else:
                 fixPos[node] = ((i-2) % nrows, (i-2) // nrows)
                 if node.vote:
                     colourMap.append( (0, 0.5, 1) )
-                    voteList[node] = f"V, {round(node.uncertainty, 1)}"
+                    # voteList[node] = f"V, {round(node.uncertainty, 1)}"
+                    voteList[node] = f"Vote"
                 else:
                     colourMap.append( (1, 0.5, 0) )
-                    voteList[node] = f"NV, {round(node.uncertainty, 1)}"
+                    # voteList[node] = f"NV, {round(node.uncertainty, 1)}"
+                    voteList[node] = f"Not Vote"
                 
         self.graph.add_edges_from(adj)
         
-        pos = nx.spring_layout(self.graph, pos=fixPos, fixed=self.nodes)
-        nx.draw(self.graph, pos = pos, with_labels=False, node_color=colourMap, edge_color=[clr]*len(self.graph.edges()), node_size=[30]*len(self.nodes))
+        pos = nx.spring_layout(self.graph, pos=fixPos, fixed=gNodes)
+        nx.draw(self.graph, pos = pos, with_labels=False, node_color=colourMap, edge_color=clr, node_size=30)
         
         labelPos = {}
         for p in pos.keys():
@@ -169,7 +175,7 @@ class Game:
         
         nx.draw_networkx_labels(self.graph, pos=labelPos, labels=voteList, font_size=9)
         # plt.show()
-        plt.pause(0.3)
+        plt.pause(0.2)
 
     # Create green node network connections
     def connectGreen(self):
@@ -315,7 +321,7 @@ class Game:
                 pass
             else:
                 self.broadcast(redMsg, self.redAdj, "red", True)
-                # self.showGraph(self.redAdj, (1,0,0,0.4))
+                self.showGraph(self.redAdj, (1,0,0,0.4))
             
             # Blue
             blueMsg = self.nodes[0].chooseAction(self.nodes[self.greenNum + 2:])
@@ -326,17 +332,18 @@ class Game:
                     self.broadcast(grey.messages["RED"], greyAdj, "red", False)
                 else:
                     self.broadcast(grey.messages["BLUE"], greyAdj, "blue", False)
-                # self.showGraph(greyAdj, (108, 122, 137, 0.4) )
+                # print(f"Grey node: {grey}")
+                self.showGraph(greyAdj, (0.5,0.5,0.5,0.4), grey)
                 self.nodes.remove(grey)
             elif (blueMsg == -1):
                 pass
             else:
                 self.broadcast(blueMsg, self.blueAdj, "blue", True)
-                # self.showGraph(self.blueAdj, (0,0,1,0.4))
+                self.showGraph(self.blueAdj, (0,0,1,0.4))
             
             # Green
             self.socialise()
-            # self.showGraph(self.greenAdj, (0,1,0,0.4))
+            self.showGraph(self.greenAdj, (0,1,0,0.4))
             
             self.connectGreen()
             
