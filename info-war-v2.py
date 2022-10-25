@@ -36,11 +36,11 @@ class Blue:
     def __init__(self):
         self.energy = 100
         self.messages = {
-            "M1": {"cost": 1, "strength": 0.1, "message": "BLUE loves you"}, 
-            "M2": {"cost": 2, "strength": 0.2, "message": "Trust in BLUE"},
-            "M3": {"cost": 3, "strength": 0.3, "message": "BLUE is true"},
-            "M4": {"cost": 4, "strength": 0.4, "message": "BLUE is better"},
-            "M5": {"cost": 5, "strength": 0.5, "message": "Your future depends on your vote"}
+            "M1": {"cost": 1, "strength": 1, "message": "BLUE loves you"}, 
+            "M2": {"cost": 2, "strength": 2, "message": "Trust in BLUE"},
+            "M3": {"cost": 3, "strength": 3, "message": "BLUE is true"},
+            "M4": {"cost": 4, "strength": 4, "message": "BLUE is better"},
+            "M5": {"cost": 5, "strength": 5, "message": "Your future depends on your vote"}
         }
     
     # Decision making method for choosing a Blue agent action
@@ -62,11 +62,11 @@ class Red:
     def __init__(self, followers):
         self.followers = followers
         self.messages = {
-            "M1": {"loss": 0.005, "strength": 0.4, "message": "Blue is racist"}, 
-            "M2": {"loss": 0.01, "strength": 0.5, "message": "Blue support child labour"},
-            "M3": {"loss": 0.015, "strength": 0.6, "message": "Blue corrupts"},
-            "M4": {"loss": 0.02, "strength": 0.7, "message": "Blue support human experiments"},
-            "M5": {"loss": 0.025, "strength": 0.8, "message": "Blue uses birds to stalk people"}
+            "M1": {"cost": 1, "strength": 1, "message": "Blue is racist"}, 
+            "M2": {"cost": 2, "strength": 2, "message": "Blue support child labour"},
+            "M3": {"cost": 3, "strength": 3, "message": "Blue corrupts"},
+            "M4": {"cost": 4, "strength": 4, "message": "Blue support human experiments"},
+            "M5": {"cost": 5, "strength": 5, "message": "Blue uses birds to stalk people"}
         }
 
     def chooseAction(self):
@@ -115,88 +115,6 @@ class Game:
         self.greenAdj = []
         self.redAdj = []
         self.blueAdj = []
-
-    # Get user input
-    def startGame(self):
-        print("------ Welcome to Information War Game ------")
-        print("------ Game Settings ------")
-
-        while True:
-            redPlayer = input("AI/Human for Red Team (Enter AI/Human): ").lower()
-            if redPlayer == "ai" or redPlayer =="human":
-                self.redIsAi = False if redPlayer == "human" else True
-                break
-        while True:
-            bluePlayer = input("AI/Human for Blue Team (Enter AI/Human): ").lower()
-            if bluePlayer == "ai" or bluePlayer == "human":
-                self.blueIsAi = False if bluePlayer == "human" else True
-                break
-        while True:
-            default = input("Would you like to use the default game settings?: (Enter y/n) ").lower()
-            if default == "y":
-                return
-            else:
-                break
-        while True:
-            try:
-                greenNum = int(input("Number of green agents (Enter an integer): "))
-                self.greenNum = greenNum
-                break
-            except:
-                continue
-        while True:
-            try:
-                greyNum = int(input("Number of grey agents (Enter an integer): "))
-                self.greyNum = greyNum
-                break
-            except:
-                continue
-        while True:
-            try:
-                connProb = float(input("Probability of connection between green agents (Enter a decimal value between 0 to 1): "))
-                if connProb <= 1 and connProb >= 0:
-                    self.connProb = connProb
-                    break
-                else:
-                    continue
-            except:
-                continue
-        while True:
-            try:
-                spyProp = float(input("Proportion of red spy among grey agents (Enter a decimal value between 0 to 1): "))
-                if spyProp <= 1 and spyProp >= 0:
-                    self.spyProp = spyProp
-                    break
-                else:
-                    continue
-            except:
-                continue
-        while True:
-            try:
-                uncRange = input("Initial uncertainty range for green nodes (Enter two decimal values between -1 to 1 separated by space): ").split()
-                uncRange[0],uncRange[1] = float(uncRange[0]), float(uncRange[1])
-                if uncRange[0] < uncRange[1]:
-                    self.uncRange = (uncRange[0],uncRange[1])
-                else:
-                    self.uncRange = (uncRange[1],uncRange[0])
-                break
-            except:
-                continue
-        while True:
-            try:
-                initVote = float(input("Percentage of green nodes with voting opinion (Enter a decimal value between 0 to 1): "))
-                if initVote <= 1 and initVote >= 0:
-                    self.initVote = initVote
-                    break
-                else:
-                    continue
-            except:
-                continue
-        
-        
-        
-
-
 
     # Visualisation of the current game state graph
     def showGraph(self, adj, clr):
@@ -415,6 +333,7 @@ class Game:
             # Green
             self.socialise()
             self.showGraph(self.greenAdj, (0,1,0,0.4))
+                
             
             # Check win
             win = self.checkWin()
@@ -426,14 +345,221 @@ class Game:
         self.endGame()
 
     def initGame(self, ):
-        self.startGame()
         self.createPop()
         self.runGame()
 
+# GUI
+# -------------------------------------------------------------
+
+    def showWindow1(self):
+
+        def getInputs(inputs,root,frame):
+            allInputs = []
+            for input in inputs:
+               allInputs.append(input.get())
+            for i in range(len(allInputs)-2):
+                try:
+                    float(allInputs[i])
+                except:
+                    ttk.Label(frame, text="Please use valid inputs",foreground='#FF0000').grid(column=0, row=7, columnspan=4, padx=15, pady=5)
+                    return
+            root.destroy()
+            
+            print(allInputs)
+            # Update constants
+            self.greenNum = int(allInputs[0])
+            self.greyNum = int(allInputs[2])
+            self.connectProb = float(allInputs[1])
+            self.spyProp = float(allInputs[3])
+            self.uncRange = (float(allInputs[4]),float(allInputs[5]))
+            self.initVote = float(allInputs[6])
+            self.redIsAi = False if allInputs[8] == "AI" else True
+            self.blueIsAi = False if allInputs[9] == "AI" else True
+
+            
+        root = tk.Tk()
+        root.title('Information War Game')
+        root.geometry('730x380+50+50')
+        root.iconbitmap('./logo.ico')
+        sv_ttk.set_theme("light")
+        style = ttk.Style()
+        style.configure('TLabel', background="#cedaf2")
+
+        frame = tk.Frame(root,bg="#cedaf2")
+        frame.pack(ipadx=40, ipady=20,fill="both", expand=True)
+
+        # configure the grid
+        frame.columnconfigure(0, weight=2)
+        frame.columnconfigure(1, weight=3)
+        frame.columnconfigure(2, weight=2)
+        frame.columnconfigure(3, weight=3)
+
+        # place a title label on the frame window
+        ttk.Label(frame, text="Information War Game", font=("Rockwell", 14)).grid(column=0, row=0, columnspan=4, padx=5, pady=20)
+
+        # input fields
+        inputLables = [["Number of Green Agents:","green_num"], ["Connection Probability:","con_prob"], ["Number of Grey Agents:","grey_num"], ["Proportion of Grey Spies:","spies_prop"],
+                        ["Uncertainty Interval (min):","unc_min"], ["Uncertainty Interval (max):","unc_max"], ["Initial porportion of voters","voters_prop"], ["Number of rounds","round_num"]]
+        inputVal = []
+        for i in range(len(inputLables)):
+            ttk.Label(frame, text=inputLables[i][0]).grid(column=(i*2)%4, row=i//2 +1, sticky=tk.W, padx=15, pady=5)
+            text = tk.StringVar()
+            entry = ttk.Entry(frame,textvariable=text)
+            entry.grid(column=(i*2+1)%4, row=i//2+1, sticky=tk.W, padx=8, pady=5)
+            inputVal.append(text)
+        
+        inputVal += [tk.StringVar(),tk.StringVar()]
+
+        ttk.Label(frame, text="Red Team Player:").grid(column=0, row=5, sticky=tk.W, padx=15, pady=5)
+        ttk.OptionMenu(frame, inputVal[-2],"AI",*["AI","Human"]).grid(column=1, row=5, sticky=tk.W, padx=8, pady=5)
+        ttk.Label(frame, text="Red Team Player:").grid(column=2, row=5, sticky=tk.W, padx=15, pady=5)
+        ttk.OptionMenu(frame, inputVal[-1],"AI",*["AI","Human"]).grid(column=3, row=5, sticky=tk.W, padx=8, pady=5)
+        
+        # place a button on the frame window
+        ttk.Button(frame, text='Start Simulation', command=lambda: getInputs(inputVal,root,frame)).grid(column=0, row=6, columnspan=4, pady=8, ipadx=8, ipady=4)
+        # keep the window displaying
+        frame.mainloop()
+
+    def showWindow2(self):
+        def getSelectedMessage(selected_message):
+            # if red, do red stuff, if blue do blue stuff + green interaction
+            # checkWinning condition
+            # disable the input for current player and enable the input for next player if next player is not AI
+            # if next player is AI, call an AI function? AI function do AI stuff and check winning condition
+            # if win, returns.
+
+            
+            print(selected_message.get())
+        def introduceGrey():
+            print("grey introduced")
+
+
+        def activateComponents(components):
+            for c in components:
+                c.configure(state = 'disabled')
+
+        def createSideFrame(container,left):
+            frame = ttk.Frame(container)
+            # configure the grid
+            frame.columnconfigure(0, weight=2)
+            frame.columnconfigure(1, weight=3)
+            frame.columnconfigure(2, weight=2)
+
+            # energy = self.nodes[0].energy
+            energy = 100
+            
+            ttk.Label(frame, text="RED TEAM" if left else "BLUE TEAM",font=("Rockwell", 14)).grid(column=0, row=0, columnspan=3, padx=15, pady=18)
+            ttk.Label(frame, text=f"Number of followers: {len(self.redAdj)}" if left else f"Energy left: {energy}").grid(column=0, row=1, columnspan=3, padx=15, pady=5)
+            ttk.Label(frame, text=f"Select a message below").grid(column=0, row=2, columnspan=3, padx=15, pady=5)
+            ttk.Label(frame, text=f"Message").grid(column=0, row=3, padx=15, pady=5)
+            ttk.Label(frame, text=f"Strength").grid(column=1, row=3, padx=15, pady=5)
+            ttk.Label(frame, text=f"Followers loss"if left else "Energy Lost").grid(column=2, row=3, padx=15, pady=5)
+
+            # messages = self.nodes[1].messages if left else self.nodes[0].messages
+            # dummyMessage below
+            messages =  {
+                            "M1": {"cost": 1, "strength": 1, "message": "Blue is racist"}, 
+                            "M2": {"cost": 2, "strength": 2, "message": "Blue support child labour"},
+                            "M3": {"cost": 3, "strength": 3, "message": "Blue corrupts"},
+                            "M4": {"cost": 4, "strength": 4, "message": "Blue support human experiments"},
+                            "M5": {"cost": 5, "strength": 5, "message": "Blue uses birds to stalk people"}
+                            }      
+            msgKeys = list(messages.keys())
+            selected_message = tk.StringVar()
+            components = []
+            for i in range(len(messages)):
+                r = ttk.Radiobutton(frame, text=f"{messages[msgKeys[i]]['message']}",value=msgKeys[i],variable=selected_message)
+                r.grid(column=0, row=i+4, sticky=tk.W, padx=15, pady=5)
+                components.append(r)
+                ttk.Label(frame, text=f"{messages[msgKeys[i]]['strength']}").grid(column=1, row=i+4, padx=15, pady=5)
+                ttk.Label(frame, text=f"{messages[msgKeys[i]]['cost']}").grid(column=2, row=i+4, padx=15, pady=5)
+            if left:
+                rbtn1 = ttk.Button(frame, text="Send Message", command=lambda:getSelectedMessage(selected_message))
+                rbtn1.grid(column=0, row=10, columnspan=3, padx=15, pady=15)
+                components.append(rbtn1)
+            else:
+                bbtn1 = ttk.Button(frame, text="Send Message", command=lambda:getSelectedMessage(selected_message))
+                bbtn1.grid(column=0, row=10, columnspan=2, padx=15, pady=15)
+                bbtn2 = ttk.Button(frame, text="Introduce Grey", command=introduceGrey)
+                bbtn2.grid(column=1, row=10, columnspan=2, padx=15, pady=15)
+                components.append(bbtn1)
+                components.append(bbtn2)
+
+            # ttk.Style().configure('TRadiobutton', state = 'disabled')
+            # ttk.Style().configure('TButton', state = 'disabled')
+            return frame, components
+
+        def createMiddleFrame(container):
+            frame = ttk.Frame(container)
+            # configure the grid
+            frame.columnconfigure(0, weight=2)
+            frame.columnconfigure(1, weight=3)
+            frame.columnconfigure(2, weight=2)
+
+            photo=Image.open('pic.png')
+            img=photo.resize((200, 200))
+            image=ImageTk.PhotoImage(img)
+            image_label = ttk.Label(frame, image=image, compound='top')
+            image_label.image = image
+            image_label.grid(column=0, row=0, columnspan=3, padx=15, pady=15)
+
+            return frame
+
+
+        root = tk.Tk()
+        root.title('Information War Game')
+        root.geometry('1200x600')
+        root.iconbitmap('./logo.ico')
+        # sv_ttk.set_theme("light")
+        style = ttk.Style()
+        style.configure('TLabel', background="#cedaf2")
+        style.configure('TFrame', background="#cedaf2")
+        style.configure('TRadiobutton', background="#cedaf2")
+        root.configure(background="#cedaf2")
+
+        # layout on the root window
+        root.columnconfigure(0, weight=1)
+        root.columnconfigure(1, weight=1)
+        root.columnconfigure(2, weight=1)
+
+        
+        leftFrame,rcomponents = createSideFrame(root, True)
+        leftFrame.grid(column=0, row=0)
+
+        middleFrame = createMiddleFrame(root)
+        middleFrame.grid(column=1, row=0)
+
+        rightFrame,bcomponents = createSideFrame(root, False)
+        rightFrame.grid(column=2, row=0)
+
+        activateComponents(rcomponents)
+
+        root.mainloop()
+        
+        # while (True):
+        #     win = self.checkWin() 
+        #     if win == 0:
+        #         if self.turn == 'RED' and not self.redIsAi:
+        #             activatecomponents(rcomponents)
+        #     elif win == 1:
+        #         print("BLUE WINS")
+        #         break
+        #     else:
+        #         print("RED WINS")
+        #         break
+
+        
+        
+        
+    
 def main():
     G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE, False, False)
-    # G1 = Game(None,None,None,None,None,None,None,None)
+    # G1.showWindow1()
+    # G1.showWindow2()
     G1.initGame()
+    # G1.showWindow2()
+    # ele = input("give;")
+    # print(ele)
 
 if __name__=="__main__":
     main()
