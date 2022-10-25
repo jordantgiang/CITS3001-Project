@@ -4,6 +4,7 @@
 # Import libraries
 # --------------------------------------------------- 
 import matplotlib.pyplot as plt
+import numpy as np
 import math
 import networkx as nx
 import random
@@ -17,9 +18,9 @@ from PIL import Image, ImageTk
 # Global Constants
 # --------------------------------------------------- 
 # Inputs
-GREY_NUM = 0 # Number of grey agent
-GREEN_NUM = 90  # Number of green agent
-CON_PROB = 0.05 # Probability of initial connection between any 2 green nodes
+GREY_NUM = 1 # Number of grey agent
+GREEN_NUM = 25  # Number of green agent
+CON_PROB = 0.15 # Probability of initial connection between any 2 green nodes
 SPY_PROP = 0.1 # Proportion of agents who are spies from the red team
 UNC_RANGE = (-0.5, 0.5) # Initial uncertainty range for green nodes
 INIT_VOTE = 0.5 # Percentage of green nodes with voting opinion
@@ -34,7 +35,7 @@ INTERACTION_COEFF = 0.05 # Scaling coefficient of an interaction uncertainty cal
 class Blue:
     # Constructor
     def __init__(self):
-        self.energy = 100
+        self.energy = 10
         self.messages = {
             "M1": {"cost": 1, "strength": 0.5, "message": "BLUE loves you"}, 
             "M2": {"cost": 2, "strength": 1.0, "message": "Trust in BLUE"},
@@ -43,8 +44,44 @@ class Blue:
             "M5": {"cost": 5, "strength": 2.5, "message": "Your future depends on your vote"}
         }
     
-    # Decision making method for choosing a Blue agent action
-    def chooseAction(self, greyAgents):
+    def userAction(self, greyAgents):
+        greyNum = len(greyAgents)
+        if greyNum <= 0 and self.energy <= 0:
+            return -1
+        if greyNum > 0:
+            while True:
+                try:
+                    g = input(f"X{greyNum} grey agents left. Would you like to introduce grey? (Enter y/n): ")
+                    if g == "y":
+                        print()
+                        return 1
+                    break
+                except:
+                    continue
+            print()
+        if self.energy > 0:
+            print("---- Message Options for Blue ----")
+            print(f"{'Message':38}{'Strength':15}{'Energy Cost'}")
+            print(f"1. {self.messages['M1']['message']:35}{self.messages['M1']['strength']:<15}{self.messages['M1']['cost']}")
+            print(f"2. {self.messages['M2']['message']:35}{self.messages['M2']['strength']:<15}{self.messages['M2']['cost']}")
+            print(f"3. {self.messages['M3']['message']:35}{self.messages['M3']['strength']:<15}{self.messages['M3']['cost']}")
+            print(f"4. {self.messages['M4']['message']:35}{self.messages['M4']['strength']:<15}{self.messages['M4']['cost']}")
+            print(f"5. {self.messages['M5']['message']:35}{self.messages['M5']['strength']:<15}{self.messages['M5']['cost']}")
+            print("---------------------------------")
+            while True:
+                try:
+                    m = int(input("Which message would you like to select? (Enter an integer between 1-5): "))
+                    if m >= 0 and m <=5:
+                        if m > self.energy:
+                            print("Not enough energy")
+                            continue
+                        print()
+                        return self.messages[f"M{m}"]
+                except:
+                    continue
+
+
+    def AIAction(self,greyAgents,game):
         # Randomly chooses between grey node and broadcast
         if (len(greyAgents) != 0 and random.random() < 0.1):
             return 1
@@ -58,6 +95,27 @@ class Blue:
             if (msg["cost"] <= self.energy):
                 return msg
 
+    def chooseAction(self,greyAgents,game):
+        if game.redIsAi:
+            return self.AIAction(greyAgents,game)
+        else:
+            return self.userAction(greyAgents)
+
+
+    # Decision making method for choosing a Blue agent action
+    # def chooseAction(self, greyAgents):
+    #     # Randomly chooses between grey node and broadcast
+    #     if (len(greyAgents) != 0 and random.random() < 0.1):
+    #         return 1
+    #     # Choosing random message
+    #     # print(f"Energy: {self.energy}")
+    #     if (self.energy == 0):
+    #         return -1
+    #     while (True):
+    #         msg = random.choice(list(self.messages.values()))
+    #         if (msg["cost"] <= self.energy):
+    #             return msg
+
 class Red:
     # Constructor
     def __init__(self, followers):
@@ -70,9 +128,32 @@ class Red:
             "M5": {"loss": 0.05, "strength": 3, "message": "Blue uses birds to stalk people"}
         }
 
-    def chooseAction(self):
-        # Choosing random message
+    def userAction(self):
+        print("---- Message Options for Red ----")
+        print(f"{'Message':38}{'Strength':15}{'Probability of follower lost'}")
+        print(f"1. {self.messages['M1']['message']:35}{self.messages['M1']['strength']:<15}{self.messages['M1']['loss']}")
+        print(f"2. {self.messages['M2']['message']:35}{self.messages['M2']['strength']:<15}{self.messages['M2']['loss']}")
+        print(f"3. {self.messages['M3']['message']:35}{self.messages['M3']['strength']:<15}{self.messages['M3']['loss']}")
+        print(f"4. {self.messages['M4']['message']:35}{self.messages['M4']['strength']:<15}{self.messages['M4']['loss']}")
+        print(f"5. {self.messages['M5']['message']:35}{self.messages['M5']['strength']:<15}{self.messages['M5']['loss']}")
+        print("---------------------------------")
+        while True:
+            try:
+                m = int(input("Which message would you like to select? (Enter an integer between 1-5): "))
+                if m >= 0 and m <=5:
+                    print()
+                    return self.messages[f"M{m}"]
+            except:
+                continue
+
+    def AIAction(self,game):
         return random.choice(list(self.messages.values()))
+
+    def chooseAction(self,game):
+        if game.redIsAi:
+            return self.AIAction(game)
+        else:
+            return self.userAction()
         
         # return self.messages["M5"]
 
@@ -134,6 +215,7 @@ class Game:
         while True:
             default = input("Would you like to use the default game settings?: (Enter y/n) ").lower()
             if default == "y":
+                print()
                 return
             else:
                 break
@@ -192,6 +274,7 @@ class Game:
                     continue
             except:
                 continue
+        print()
         
         
         
@@ -405,7 +488,8 @@ class Game:
                 pass
                 isGrey = False
             # Red
-            redMsg = self.nodes[1].chooseAction()
+            print(f"====================== Red's Turn (Followers left: {len(self.redAdj)}) ======================")
+            redMsg = self.nodes[1].chooseAction(self)
             if (len(self.redAdj) == 0):
                 pass
             else:
@@ -413,7 +497,8 @@ class Game:
                 self.showGraph(self.redAdj, (1,0,0,0.4))
             
             # Blue
-            blueMsg = self.nodes[0].chooseAction(self.nodes[self.greenNum + 2:])
+            print(f"====================== Blue's Turn (Energy left: {self.nodes[0].energy}) ======================")
+            blueMsg = self.nodes[0].chooseAction(self.nodes[self.greenNum + 2:],self)
             if (blueMsg == 1):
                 grey = random.choice(list(self.nodes[self.greenNum + 2:]))
                 greyAdj = list(zip([grey]*self.greenNum, self.nodes[2:self.greenNum+2]))
@@ -451,6 +536,7 @@ class Game:
         return self.runGame()
 
 def main():
+    np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)   
     # blue = 0
     # red = 0
     # total = 1000
@@ -464,10 +550,13 @@ def main():
     #         red += 1
             
     # print(f"Blue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%")
-    
-    G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE, False, False)
-    result = G1.initGame()
 
+    G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE,False,False)
+    result = G1.initGame()
+    if result == 1:
+        print("Blue Won")
+    else:
+        print("Red Won")
 
 if __name__=="__main__":
     main()
