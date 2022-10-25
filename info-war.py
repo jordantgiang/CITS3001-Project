@@ -96,7 +96,7 @@ class Blue:
                 return msg
 
     def chooseAction(self,greyAgents,game):
-        if game.redIsAi:
+        if game.blueIsAi:
             return self.AIAction(greyAgents,game)
         else:
             return self.userAction(greyAgents)
@@ -480,6 +480,28 @@ class Game:
     def endGame(self):
         return
     
+    def printStat(self):
+        cV, ucV, cNV, ucNV = 0, 0, 0, 0
+        for node in self.nodes[2:self.greenNum+2]:
+            if node.vote == True:
+                if node.uncertainty <= 0:
+                    ucV += 1
+                else:
+                    cV += 1
+            else:
+                if node.uncertainty <= 0:
+                    ucNV += 1
+                else:
+                    cNV += 1
+        cVStr = f"{round(cV/self.greenNum * 100,1)}% ({cV})"
+        ucVStr = f"{round(ucV/self.greenNum * 100,1)}% ({ucV})"
+        cNVStr = f"{round(cNV/self.greenNum * 100,1)}% ({cNV})"
+        ucNVStr = f"{round(ucNV/self.greenNum * 100,1)}% ({ucNV})"
+        print("~~~~~~ STATISTIC ~~~~~~")
+        print(f"{'Proportion of Certain Voters':^28}{'Proportion of Uncertain Voters':^38}{'Proportion of Uncertain Non-Voters'}{'Proportion of Certain Non-Voters':^38}")
+        print(f"{cVStr:^28}{ucVStr:^38}{cNVStr:^34}{ucNVStr:^38}")
+        print()
+
     def runGame(self):
         win = self.checkWin()
         isGrey = True
@@ -495,7 +517,7 @@ class Game:
             else:
                 self.broadcast(redMsg, self.redAdj, "red", True)
                 self.showGraph(self.redAdj, (1,0,0,0.4))
-            
+            self.printStat()
             # Blue
             print(f"====================== Blue's Turn (Energy left: {self.nodes[0].energy}) ======================")
             blueMsg = self.nodes[0].chooseAction(self.nodes[self.greenNum + 2:],self)
@@ -514,13 +536,15 @@ class Game:
             else:
                 self.broadcast(blueMsg, self.blueAdj, "blue", True)
                 self.showGraph(self.blueAdj, (0,0,1,0.4))
-            
+            self.printStat()
+
             # Green
+            print(f"====================== Green's Turn ======================")
             self.socialise()
             self.showGraph(self.greenAdj, (0,1,0,0.4))
             
             self.connectGreen()
-            
+            self.printStat()
             # Check win
             win = self.checkWin()
             
