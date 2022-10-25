@@ -17,9 +17,9 @@ from PIL import Image, ImageTk
 # Global Constants
 # --------------------------------------------------- 
 # Inputs
-GREY_NUM = 20 # Number of grey agent
-GREEN_NUM = 25  # Number of green agent
-CON_PROB = 0.15 # Probability of initial connection between any 2 green nodes
+GREY_NUM = 0 # Number of grey agent
+GREEN_NUM = 90  # Number of green agent
+CON_PROB = 0.05 # Probability of initial connection between any 2 green nodes
 SPY_PROP = 0.1 # Proportion of agents who are spies from the red team
 UNC_RANGE = (-0.5, 0.5) # Initial uncertainty range for green nodes
 INIT_VOTE = 0.5 # Percentage of green nodes with voting opinion
@@ -27,7 +27,7 @@ INIT_VOTE = 0.5 # Percentage of green nodes with voting opinion
 # Game settings
 WIN_THRESHOLD = 0.6 # Proportion of population required with agreeing certain (uncertainty < 0) opinions for red/blue to win.
 INFLUENCE_FACTOR = 1.2 # Uncertainty value's influence of the change of uncertainty in an interaction uncertainty calculation.
-INTERACTION_COEFF = 0.1 # Scaling coefficient of an interaction uncertainty calculation.
+INTERACTION_COEFF = 0.05 # Scaling coefficient of an interaction uncertainty calculation.
 
 # Classes for nodes
 # --------------------------------------------------- 
@@ -36,11 +36,11 @@ class Blue:
     def __init__(self):
         self.energy = 100
         self.messages = {
-            "M1": {"cost": 1, "strength": 0.1, "message": "BLUE loves you"}, 
-            "M2": {"cost": 2, "strength": 0.2, "message": "Trust in BLUE"},
-            "M3": {"cost": 3, "strength": 0.3, "message": "BLUE is true"},
-            "M4": {"cost": 4, "strength": 0.4, "message": "BLUE is better"},
-            "M5": {"cost": 5, "strength": 0.5, "message": "Your future depends on your vote"}
+            "M1": {"cost": 1, "strength": 0.5, "message": "BLUE loves you"}, 
+            "M2": {"cost": 2, "strength": 1.0, "message": "Trust in BLUE"},
+            "M3": {"cost": 3, "strength": 1.5, "message": "BLUE is true"},
+            "M4": {"cost": 4, "strength": 2.0, "message": "BLUE is better"},
+            "M5": {"cost": 5, "strength": 2.5, "message": "Your future depends on your vote"}
         }
     
     # Decision making method for choosing a Blue agent action
@@ -54,6 +54,7 @@ class Blue:
             return -1
         while (True):
             msg = random.choice(list(self.messages.values()))
+            # msg = self.messages["M5"]
             if (msg["cost"] <= self.energy):
                 return msg
 
@@ -62,18 +63,18 @@ class Red:
     def __init__(self, followers):
         self.followers = followers
         self.messages = {
-            "M1": {"loss": 0.005, "strength": 0.4, "message": "Blue is racist"}, 
-            "M2": {"loss": 0.01, "strength": 0.5, "message": "Blue support child labour"},
-            "M3": {"loss": 0.015, "strength": 0.6, "message": "Blue corrupts"},
-            "M4": {"loss": 0.02, "strength": 0.7, "message": "Blue support human experiments"},
-            "M5": {"loss": 0.025, "strength": 0.8, "message": "Blue uses birds to stalk people"}
+            "M1": {"loss": 0.01, "strength": 1, "message": "Blue is racist"}, 
+            "M2": {"loss": 0.02, "strength": 1.5, "message": "Blue support child labour"},
+            "M3": {"loss": 0.03, "strength": 2, "message": "Blue corrupts"},
+            "M4": {"loss": 0.04, "strength": 2.5, "message": "Blue support human experiments"},
+            "M5": {"loss": 0.05, "strength": 3, "message": "Blue uses birds to stalk people"}
         }
 
     def chooseAction(self):
         # Choosing random message
-        # return random.choice(list(self.messages.values()))
+        return random.choice(list(self.messages.values()))
         
-        return self.messages["M5"]
+        # return self.messages["M5"]
 
 class Green:
     # Constructor
@@ -87,8 +88,8 @@ class Grey:
     def __init__(self, spy):
         self.spy = spy
         self.messages = {
-            "BLUE": {"cost": 5, "strength": 0.5, "message": None},
-            "RED": {"loss": 0.05, "strength": 1, "message": None}
+            "BLUE": {"cost": 5, "strength": 2.5, "message": None},
+            "RED": {"loss": 0.05, "strength": 6, "message": None}
         }
 
 
@@ -205,10 +206,11 @@ class Game:
         voteList = {}
         
         gNodes = self.nodes[:self.greenNum + 2]
-        if grey == None:
-            gNodes.append(self.nodes[self.greenNum+2])
-        else:
-            gNodes.append(grey)
+        if (len(self.nodes) != (self.greenNum + 2)):
+            if grey == None:
+                gNodes.append(self.nodes[self.greenNum+2])
+            else:
+                gNodes.append(grey)
             
         self.graph.add_nodes_from(gNodes)
         
@@ -250,6 +252,7 @@ class Game:
                     voteList[node] = f"Not Vote"
                 
         self.graph.add_edges_from(adj)
+        # print(voteList.values())
         
         pos = nx.spring_layout(self.graph, pos=fixPos, fixed=gNodes)
         nx.draw(self.graph, pos = pos, with_labels=False, node_color=colourMap, edge_color=clr, node_size=30)
@@ -342,7 +345,7 @@ class Game:
             # Agreeing opinions
             if (agent1.vote == agent2.vote):
                 uncDiff = (agent1.uncertainty - agent2.uncertainty)
-                if abs(agent1.uncertainty) < abs(agent2.uncertainty):
+                if agent1.uncertainty < agent2.uncertainty:
                     self.calcUncertainty(agent1, uncDiff, True)
                     self.calcUncertainty(agent2, uncDiff, False)
                 else:
@@ -351,6 +354,7 @@ class Game:
             # Differing opinions
             else:
                 uncDiff = (1 - agent1.uncertainty) + (1 - agent2.uncertainty)
+                self.calcUncertainty(agent1, uncDiff, True)
                 self.calcUncertainty(agent2, uncDiff, True)
                 
             # print(f"New:\n\t1. Vote = {agent1.vote}, Unc = {agent1.uncertainty}\n\t2. Vote = {agent2.vote}, Unc = {agent2.uncertainty}")
@@ -447,23 +451,22 @@ class Game:
         return self.runGame()
 
 def main():
-    blue = 0
-    red = 0
-    total = 1000
-    for i in range(total):
-        G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE)
-        result = G1.initGame()
+    # blue = 0
+    # red = 0
+    # total = 1000
+    # for i in range(total):
+    #     G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE, False, False)
+    #     result = G1.initGame()
         
-        if result == 1:
-            blue += 1
-        else:
-            red += 1
+    #     if result == 1:
+    #         blue += 1
+    #     else:
+    #         red += 1
             
-    print(f"Blue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%")
-    # G1.showWindow2()
-    # a1 = Green(True, -0.7)
-    # a2 = Green(True, 0.2)
-    # G1.interact(a1, a2)
+    # print(f"Blue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%")
+    
+    G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE, False, False)
+    result = G1.initGame()
 
 
 if __name__=="__main__":
