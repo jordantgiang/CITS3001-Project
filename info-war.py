@@ -19,8 +19,8 @@ from PIL import Image, ImageTk
 # --------------------------------------------------- 
 # Inputs
 GREY_NUM = 1 # Number of grey agent
-GREEN_NUM = 25  # Number of green agent
-CON_PROB = 0.15 # Probability of initial connection between any 2 green nodes
+GREEN_NUM = 90  # Number of green agent
+CON_PROB = 0.01 # Probability of initial connection between any 2 green nodes
 SPY_PROP = 0.1 # Proportion of agents who are spies from the red team
 UNC_RANGE = (-0.5, 0.5) # Initial uncertainty range for green nodes
 INIT_VOTE = 0.5 # Percentage of green nodes with voting opinion
@@ -35,7 +35,7 @@ INTERACTION_COEFF = 0.05 # Scaling coefficient of an interaction uncertainty cal
 class Blue:
     # Constructor
     def __init__(self):
-        self.energy = 10
+        self.energy = 100
         self.messages = {
             "M1": {"cost": 1, "strength": 0.5, "message": "BLUE loves you"}, 
             "M2": {"cost": 2, "strength": 1.0, "message": "Trust in BLUE"},
@@ -90,8 +90,8 @@ class Blue:
         if (self.energy == 0):
             return -1
         while (True):
-            msg = random.choice(list(self.messages.values()))
-            # msg = self.messages["M5"]
+            # msg = random.choice(list(self.messages.values()))
+            msg = self.messages["M5"]
             if (msg["cost"] <= self.energy):
                 return msg
 
@@ -121,11 +121,11 @@ class Red:
     def __init__(self, followers):
         self.followers = followers
         self.messages = {
-            "M1": {"loss": 0.01, "strength": 1, "message": "Blue is racist"}, 
-            "M2": {"loss": 0.02, "strength": 1.5, "message": "Blue support child labour"},
-            "M3": {"loss": 0.03, "strength": 2, "message": "Blue corrupts"},
-            "M4": {"loss": 0.04, "strength": 2.5, "message": "Blue support human experiments"},
-            "M5": {"loss": 0.05, "strength": 3, "message": "Blue uses birds to stalk people"}
+            "M1": {"loss": 0.015, "strength": 1, "message": "Blue is racist"}, 
+            "M2": {"loss": 0.025, "strength": 1.5, "message": "Blue support child labour"},
+            "M3": {"loss": 0.035, "strength": 2, "message": "Blue corrupts"},
+            "M4": {"loss": 0.045, "strength": 2.5, "message": "Blue support human experiments"},
+            "M5": {"loss": 0.055, "strength": 3, "message": "Blue uses birds to stalk people"}
         }
 
     def userAction(self):
