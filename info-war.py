@@ -13,17 +13,19 @@ import random
 # Global Constants
 # --------------------------------------------------- 
 # Inputs
-GREY_NUM = 6 # Number of grey agent
-GREEN_NUM = 60  # Number of green agent
+GREY_NUM = 0 # Number of grey agent
+GREEN_NUM = 40  # Number of green agent
 CON_PROB = 0.01 # Probability of initial connection between any 2 green nodes
-SPY_PROP = 0.2 # Proportion of agents who are spies from the red team
+SPY_PROP = 0.25 # Proportion of agents who are spies from the red team
 UNC_RANGE = (-0.5, 0.5) # Initial uncertainty range for green nodes
 INIT_VOTE = 0.5 # Percentage of green nodes with voting opinion
 
 # Game settings
 WIN_THRESHOLD = 0.6 # Proportion of population required with agreeing certain (uncertainty < 0) opinions for red/blue to win.
-INFLUENCE_FACTOR = 1.2 # Uncertainty value's influence of the change of uncertainty in an interaction uncertainty calculation.
-INTERACTION_COEFF = 0.05 # Scaling coefficient of an interaction uncertainty calculation.
+INFLUENCE_FACTOR = 1.5 # Uncertainty value's influence of the change of uncertainty in an interaction uncertainty calculation.
+CHANGE_MAGNITUDE = 0.5 # Scaling coefficient of an interaction uncertainty calculation.
+CERTAINTY_SCALE = 2
+INFLUENCE_COEFF = 0.05
 
 # Classes for nodes
 # --------------------------------------------------- 
@@ -50,7 +52,11 @@ class Blue:
                     if g == "y":
                         print()
                         return 1
-                    break
+                    elif g == "n":
+                        break
+                    continue
+                except KeyboardInterrupt:
+                    exit()
                 except:
                     continue
             print()
@@ -116,11 +122,11 @@ class Red:
     # Constructor
     def __init__(self, followers):
         self.messages = {
-            "M1": {"loss": 0.015, "strength": 1, "message": "Blue is racist"}, 
-            "M2": {"loss": 0.025, "strength": 1.5, "message": "Blue support child labour"},
-            "M3": {"loss": 0.035, "strength": 2, "message": "Blue corrupts"},
-            "M4": {"loss": 0.045, "strength": 2.5, "message": "Blue support human experiments"},
-            "M5": {"loss": 0.055, "strength": 3, "message": "Blue uses birds to stalk people"}
+            "M1": {"loss": 0.01, "strength": 1.0, "message": "Blue is racist"}, 
+            "M2": {"loss": 0.02, "strength": 1.5, "message": "Blue support child labour"},
+            "M3": {"loss": 0.03, "strength": 2.0, "message": "Blue corrupts"},
+            "M4": {"loss": 0.04, "strength": 2.5, "message": "Blue support human experiments"},
+            "M5": {"loss": 0.05, "strength": 3.0, "message": "Blue uses birds to stalk people"}
         }
 
     def userAction(self,game):
@@ -146,6 +152,10 @@ class Red:
 
     def randomAIAction(self,game):
         return random.choice(list(self.messages.values()))
+        
+    def AIAction(self,game):
+        # return random.choice(list(self.messages.values()))
+        return self.messages["M5"]
 
     def AIAction(self,game):
         # Vperc, NVperc = game.calcVoters()
@@ -361,12 +371,12 @@ class Game:
                 fixPos[node] = ((i-2) % nrows, (i-2) // nrows)
                 if node.vote:
                     colourMap.append( (0, 0.5, 1) )
-                    # voteList[node] = f"V, {round(node.uncertainty, 1)}"
-                    voteList[node] = f"Vote"
+                    voteList[node] = f"V, {round(node.uncertainty, 1)}"
+                    # voteList[node] = f"Vote"
                 else:
                     colourMap.append( (1, 0.5, 0) )
-                    # voteList[node] = f"NV, {round(node.uncertainty, 1)}"
-                    voteList[node] = f"Not Vote"
+                    voteList[node] = f"NV, {round(node.uncertainty, 1)}"
+                    # voteList[node] = f"Not Vote"
                 
         self.graph.add_edges_from(adj)
         # print(voteList.values())
@@ -456,9 +466,9 @@ class Game:
     
     def calcUncertainty(self, agent, diff, increase):
         if increase:
-            agent.uncertainty += (agent.uncertainty+INFLUENCE_FACTOR)*diff*INTERACTION_COEFF
+            agent.uncertainty += (CHANGE_MAGNITUDE * diff) / math.pow(CERTAINTY_SCALE, (1 - agent.uncertainty))
         else:
-            agent.uncertainty -= (agent.uncertainty+INFLUENCE_FACTOR)*diff*INTERACTION_COEFF
+            agent.uncertainty -= (CHANGE_MAGNITUDE * diff) / math.pow(CERTAINTY_SCALE, (1 - agent.uncertainty))
 
         if (agent.uncertainty > 1):
             overflow = agent.uncertainty - 1
@@ -466,7 +476,21 @@ class Game:
             agent.uncertainty = 1 - overflow
         
         if (agent.uncertainty < -1):
-            agent.uncertainty = -1
+            agent.uncertainty = -1.0
+            
+    def calcInfluence(self, agent, strength, increase):
+        if increase:
+            agent.uncertainty += (agent.uncertainty+INFLUENCE_FACTOR)*strength*INFLUENCE_COEFF
+        else:
+            agent.uncertainty -= (agent.uncertainty+INFLUENCE_FACTOR)*strength*INFLUENCE_COEFF
+
+        if (agent.uncertainty > 1):
+            overflow = agent.uncertainty - 1
+            agent.vote = not agent.vote
+            agent.uncertainty = 1 - overflow
+        
+        if (agent.uncertainty < -1):
+            agent.uncertainty = -1.0
 
     # In the case of a red/blue to green interaction, @param agent1 is passed as red/blue
     def interact(self, agent1, agent2, message):
@@ -492,14 +516,14 @@ class Game:
         else:
             if (type(agent1) == Blue):
                 if (agent2.vote):   # Voter
-                    self.calcUncertainty(agent2, message["strength"], False)
+                    self.calcInfluence(agent2, message["strength"], False)
                 else:               # Non-voter
-                    self.calcUncertainty(agent2, message["strength"], True)
+                    self.calcInfluence(agent2, message["strength"], True)
             else:
                 if (agent2.vote):   # Voter
-                    self.calcUncertainty(agent2, message["strength"], True)
+                    self.calcInfluence(agent2, message["strength"], True)
                 else:               # Non-voter
-                    self.calcUncertainty(agent2, message["strength"], False)
+                    self.calcInfluence(agent2, message["strength"], False)
     
     def socialise(self):
         for edge in self.greenAdj:
@@ -562,26 +586,28 @@ class Game:
         
         print()
 
-    def runGame(self, slow):
+    def runGame(self, fastMode):
         win = self.checkWin()
         isGrey = True
+        round = 1
         while (win == 0):
             if (len(self.nodes) == self.greenNum + 2 and isGrey):
                 pass
                 isGrey = False
             # Red
-            if slow:
+            if (not fastMode):
                 print(f"====================== Red's Turn (Followers left: {len(self.redAdj)}) ======================")
             redMsg = self.nodes[1].chooseAction(self)
             if (len(self.redAdj) == 0):
                 pass
             else:
                 self.broadcast(redMsg, self.redAdj, "red", True)
-                # self.showGraph(self.redAdj, (1,0,0,0.4))
-            if slow:
+                if (not fastMode):
+                    self.showGraph(self.redAdj, (1,0,0,0.4))
+            if (not fastMode):
                 self.printStat()
             # Blue
-            if slow:
+            if (not fastMode):
                 print(f"====================== Blue's Turn (Energy left: {self.nodes[0].energy}) ======================")
             blueMsg = self.nodes[0].chooseAction(self.nodes[self.greenNum + 2:],self)
             if (blueMsg == 1):
@@ -592,41 +618,45 @@ class Game:
                 else:
                     self.broadcast(grey.messages["BLUE"], greyAdj, "blue", False)
                 # print(f"Grey node: {grey}")
-                # self.showGraph(greyAdj, (0.5,0.5,0.5,0.4), grey)
+                if (not fastMode):
+                    self.showGraph(greyAdj, (0.5,0.5,0.5,0.4), grey)
                 self.nodes.remove(grey)
             elif (blueMsg == -1):
                 pass
             else:
                 self.broadcast(blueMsg, self.blueAdj, "blue", True)
-                if slow:
+                if (not fastMode):
                     self.showGraph(self.blueAdj, (0,0,1,0.4))
-            if slow:
+            if (not fastMode):
                 self.printStat()
 
             # Green
-            if slow:
+            if (not fastMode):
                 print(f"====================== Green's Turn ======================")
             self.socialise()
-            if slow:
+            if (not fastMode):
                 self.showGraph(self.greenAdj, (0,1,0,0.4))
             
             self.connectGreen()
-            if slow:
+            if (not fastMode):
                 self.printStat()
             # Check win
             win = self.checkWin()
+            round += 1
             
         # if win==1:
         #     print("BLUE WINS")
         # elif win==2:
         #     print("RED WINS")
-        return win
+        if (not fastMode):
+            print(f"Total rounds: {round}")
+        return win, round
 
-    def initGame(self, slowMode):
-        if slowMode:
+    def initGame(self, fastMode):
+        if not fastMode:
             self.startGame()
         self.createPop()
-        return self.runGame(slowMode)
+        return self.runGame(fastMode)
 
 def main(simulate):
     np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
@@ -636,7 +666,7 @@ def main(simulate):
         total = 100
         for i in range(total):
             G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE, True, True)
-            result = G1.initGame(False)
+            result = G1.initGame(True)
             
             if result == 1:
                 blue += 1
@@ -644,13 +674,33 @@ def main(simulate):
                 red += 1
                 
         print(f"Blue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%")
+    # total = 1000
+    
+    # # variable = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
+    # variable = [(-0.8, 0.8), (-0.5,0.5), (-0.2, 0.2), (-0.8, -0.2), (0.2, 0.8)]
+    # for trial in variable:
+    #     blue = 0
+    #     red = 0
+    #     rounds = []
+    #     for i in range(total):
+    #         # G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE, True, True)
+    #         G1 = Game(6,60,0.01,0.2,trial,0.5, True, True)
+    #         result, roundss = G1.initGame(True)
+            
+    #         rounds.append(roundss)
+    #         if result == 1:
+    #             blue += 1
+    #         else:
+    #             red += 1
+                
+    #     print(f"Unc_Int: {trial}\n\tBlue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%\n\tRound: {sum(rounds)/len(rounds)}")
     else:
         G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE,False,False)
-        result = G1.initGame(True)
+        result = G1.initGame(False)
         if result == 1:
             print("Blue Won")
         else:
             print("Red Won")
 
 if __name__=="__main__":
-    main(True)
+    main(False)
