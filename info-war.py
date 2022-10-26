@@ -18,7 +18,7 @@ from PIL import Image, ImageTk
 # Global Constants
 # --------------------------------------------------- 
 # Inputs
-GREY_NUM = 1 # Number of grey agent
+GREY_NUM = 2 # Number of grey agent
 GREEN_NUM = 90  # Number of green agent
 CON_PROB = 0.01 # Probability of initial connection between any 2 green nodes
 SPY_PROP = 0.1 # Proportion of agents who are spies from the red team
@@ -385,7 +385,7 @@ class Game:
         
         for i in range(self.greyNum):
             spy = False
-            if (i < self.greyNum * self.spyProp):
+            if (i+1 < self.greyNum * self.spyProp):
                 spy = True
             self.nodes.append(Grey(spy))
 
@@ -463,13 +463,13 @@ class Game:
         if (team == "blue"):
             # broadcast message to all receivers
             for node in receivers:
-                self.interact(node[0], node[1], message)
+                self.interact(self.nodes[0], node[1], message)
             if (penalty):
                 self.nodes[0].energy -= message["cost"]
         else: # red team
             # broadcast message to all receivers
             for node in receivers:
-                self.interact(node[0], node[1], message)
+                self.interact(self.nodes[1], node[1], message)
             if (penalty):
                 for node in receivers:
                     if (random.random() < message["loss"]):
@@ -481,25 +481,37 @@ class Game:
         return
     
     def printStat(self):
-        cV, ucV, cNV, ucNV = 0, 0, 0, 0
+        # cV, ucV, cNV, ucNV = 0, 0, 0, 0
+        V, NV = 0, 0
         for node in self.nodes[2:self.greenNum+2]:
             if node.vote == True:
-                if node.uncertainty <= 0:
-                    ucV += 1
-                else:
-                    cV += 1
+                # if node.uncertainty <= 0:
+                #     ucV += 1
+                # else:
+                #     cV += 1
+                V += 1
             else:
-                if node.uncertainty <= 0:
-                    ucNV += 1
-                else:
-                    cNV += 1
-        cVStr = f"{round(cV/self.greenNum * 100,1)}% ({cV})"
-        ucVStr = f"{round(ucV/self.greenNum * 100,1)}% ({ucV})"
-        cNVStr = f"{round(cNV/self.greenNum * 100,1)}% ({cNV})"
-        ucNVStr = f"{round(ucNV/self.greenNum * 100,1)}% ({ucNV})"
+                # if node.uncertainty <= 0:
+                #     ucNV += 1
+                # else:
+                #     cNV += 1
+                NV += 1
+        # cVStr = f"{round(cV/self.greenNum * 100,1)}% ({cV})"
+        # ucVStr = f"{round(ucV/self.greenNum * 100,1)}% ({ucV})"
+        # cNVStr = f"{round(cNV/self.greenNum * 100,1)}% ({cNV})"
+        # ucNVStr = f"{round(ucNV/self.greenNum * 100,1)}% ({ucNV})"
+        
+        
+        VStr = f"{round(V/self.greenNum * 100,1)}% ({V})"
+        NVStr = f"{round(NV/self.greenNum * 100,1)}% ({NV})"
+        
         print("~~~~~~ STATISTIC ~~~~~~")
-        print(f"{'Proportion of Certain Voters':^28}{'Proportion of Uncertain Voters':^38}{'Proportion of Uncertain Non-Voters'}{'Proportion of Certain Non-Voters':^38}")
-        print(f"{cVStr:^28}{ucVStr:^38}{cNVStr:^34}{ucNVStr:^38}")
+        # print(f"{'Proportion of Certain Voters':^28}{'Proportion of Uncertain Voters':^38}{'Proportion of Uncertain Non-Voters'}{'Proportion of Certain Non-Voters':^38}")
+        # print(f"{cVStr:^28}{ucVStr:^38}{cNVStr:^34}{ucNVStr:^38}")
+        
+        print(f"{'Proportion of Voters':^28}{'Proportion of Non-Voters'}")
+        print(f"{VStr:^28}{NVStr}")
+        
         print()
 
     def runGame(self):
@@ -560,7 +572,7 @@ class Game:
         return self.runGame()
 
 def main():
-    np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)   
+    np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
     # blue = 0
     # red = 0
     # total = 1000
