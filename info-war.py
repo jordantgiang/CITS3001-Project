@@ -77,6 +77,8 @@ class Blue:
                             continue
                         print()
                         return self.messages[f"M{m}"]
+                except KeyboardInterrupt:
+                    exit()
                 except:
                     continue
 
@@ -143,6 +145,8 @@ class Red:
                 if m >= 0 and m <=5:
                     print()
                     return self.messages[f"M{m}"]
+            except KeyboardInterrupt:
+                    exit()
             except:
                 continue
 
@@ -203,10 +207,13 @@ class Game:
         print("------ Game Settings ------")
 
         while True:
-            redPlayer = input("AI/Human for Red Team (Enter AI/Human): ").lower()
-            if redPlayer == "ai" or redPlayer =="human":
-                self.redIsAi = False if redPlayer == "human" else True
-                break
+            try:
+                redPlayer = input("AI/Human for Red Team (Enter AI/Human): ").lower()
+                if redPlayer == "ai" or redPlayer =="human":
+                    self.redIsAi = False if redPlayer == "human" else True
+                    break
+            except KeyboardInterrupt:
+                exit()
         while True:
             bluePlayer = input("AI/Human for Blue Team (Enter AI/Human): ").lower()
             if bluePlayer == "ai" or bluePlayer == "human":
@@ -224,6 +231,8 @@ class Game:
                 greenNum = int(input("Number of green agents (Enter an integer): "))
                 self.greenNum = greenNum
                 break
+            except KeyboardInterrupt:
+                exit()
             except:
                 continue
         while True:
@@ -231,6 +240,8 @@ class Game:
                 greyNum = int(input("Number of grey agents (Enter an integer): "))
                 self.greyNum = greyNum
                 break
+            except KeyboardInterrupt:
+                exit()
             except:
                 continue
         while True:
@@ -241,6 +252,8 @@ class Game:
                     break
                 else:
                     continue
+            except KeyboardInterrupt:
+                exit()
             except:
                 continue
         while True:
@@ -251,6 +264,8 @@ class Game:
                     break
                 else:
                     continue
+            except KeyboardInterrupt:
+                exit()
             except:
                 continue
         while True:
@@ -262,6 +277,8 @@ class Game:
                 else:
                     self.uncRange = (uncRange[1],uncRange[0])
                 break
+            except KeyboardInterrupt:
+                exit()
             except:
                 continue
         while True:
@@ -272,6 +289,8 @@ class Game:
                     break
                 else:
                     continue
+            except KeyboardInterrupt:
+                exit()
             except:
                 continue
         print()
