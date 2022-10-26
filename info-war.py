@@ -66,7 +66,7 @@ class Blue:
             while True:
                 try:
                     m = int(input("Which message would you like to select? (Enter an integer between 1-5): "))
-                    if m >= 0 and m <=5:
+                    if m > 0 and m <=5:
                         if m > self.energy:
                             print("Not enough energy")
                             continue
@@ -399,7 +399,7 @@ class Game:
         
         for i in range(self.greyNum):
             spy = False
-            if (i+1 < self.greyNum * self.spyProp):
+            if (i+1 <= self.greyNum * self.spyProp):
                 spy = True
             self.nodes.append(Grey(spy))
 
