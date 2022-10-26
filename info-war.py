@@ -8,11 +8,6 @@ import numpy as np
 import math
 import networkx as nx
 import random
-import time
-import tkinter as tk
-from tkinter import ttk
-import sv_ttk
-from PIL import Image, ImageTk
 
 
 # Global Constants
