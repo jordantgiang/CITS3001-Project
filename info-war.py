@@ -13,10 +13,10 @@ import random
 # Global Constants
 # --------------------------------------------------- 
 # Inputs
-GREY_NUM = 2 # Number of grey agent
-GREEN_NUM = 90  # Number of green agent
+GREY_NUM = 6 # Number of grey agent
+GREEN_NUM = 60  # Number of green agent
 CON_PROB = 0.01 # Probability of initial connection between any 2 green nodes
-SPY_PROP = 0.1 # Proportion of agents who are spies from the red team
+SPY_PROP = 0.2 # Proportion of agents who are spies from the red team
 UNC_RANGE = (-0.5, 0.5) # Initial uncertainty range for green nodes
 INIT_VOTE = 0.5 # Percentage of green nodes with voting opinion
 
@@ -82,13 +82,12 @@ class Blue:
         # Randomly chooses between grey node and broadcast
         if (len(greyAgents) != 0 and random.random() < 0.1):
             return 1
-        # Choosing random message
-        # print(f"Energy: {self.energy}")
+
         if (self.energy == 0):
             return -1
         while (True):
-            # msg = random.choice(list(self.messages.values()))
-            msg = self.messages["M5"]
+            msg = random.choice(list(self.messages.values()))
+            # msg = self.messages["M5"]
             if (msg["cost"] <= self.energy):
                 return msg
 
@@ -145,16 +144,28 @@ class Red:
                 except:
                     continue
 
-    def AIAction(self,game):
+    def randomAIAction(self,game):
         return random.choice(list(self.messages.values()))
+
+    def AIAction(self,game):
+        # Vperc, NVperc = game.calcVoters()
+        # if NVperc <= 40:
+        #     return self.messages["M5"]
+        # elif NVperc <= 45:
+        #     return self.messages["M4"]
+        # elif NVperc <= 50:
+        #     return self.messages["M3"]
+        # if NVperc <= 55:
+        #     return self.messages["M2"]
+        # else:
+        #     return self.messages["M1"]
+        return self.messages["M5"]
 
     def chooseAction(self,game):
         if game.redIsAi:
             return self.AIAction(game)
         else:
             return self.userAction(game)
-        
-        # return self.messages["M5"]
 
 class Green:
     # Constructor
@@ -291,8 +302,17 @@ class Game:
         print()
         
         
-        
-
+    # Calculate percentage of voters and non-voters   
+    def calcVoters(self):
+        V, NV = 0, 0
+        for node in self.nodes[2:self.greenNum+2]:
+            if node.vote == True:
+                V += 1
+            else:
+                NV += 1
+        Vperc = V/self.greenNum * 100
+        NVperc =NV/self.greenNum * 100
+        return (Vperc, NVperc)
 
 
     # Visualisation of the current game state graph
@@ -404,7 +424,7 @@ class Game:
             self.nodes.append(Grey(spy))
 
     def checkWin(self):
-        if (self.nodes[0].energy == 0 and len(self.nodes[1].followers) == 0 and len(self.nodes) == self.greenNum + 2):
+        if (self.nodes[0].energy == 0 and len(self.redAdj) == 0 and len(self.nodes) == self.greenNum + 2):
             Voters = 0
             NonVoters = 0
             for k in range(self.greenNum):
@@ -455,7 +475,7 @@ class Game:
             # print(f"Old:\n\t1. Vote = {agent1.vote}, Unc = {agent1.uncertainty}\n\t2. Vote = {agent2.vote}, Unc = {agent2.uncertainty}")
             # Agreeing opinions
             if (agent1.vote == agent2.vote):
-                uncDiff = (agent1.uncertainty - agent2.uncertainty)
+                uncDiff = abs(agent1.uncertainty - agent2.uncertainty)
                 if agent1.uncertainty < agent2.uncertainty:
                     self.calcUncertainty(agent1, uncDiff, True)
                     self.calcUncertainty(agent2, uncDiff, False)
@@ -542,7 +562,7 @@ class Game:
         
         print()
 
-    def runGame(self):
+    def runGame(self, slow):
         win = self.checkWin()
         isGrey = True
         while (win == 0):
@@ -550,16 +570,19 @@ class Game:
                 pass
                 isGrey = False
             # Red
-            print(f"====================== Red's Turn (Followers left: {len(self.redAdj)}) ======================")
+            if slow:
+                print(f"====================== Red's Turn (Followers left: {len(self.redAdj)}) ======================")
             redMsg = self.nodes[1].chooseAction(self)
             if (len(self.redAdj) == 0):
                 pass
             else:
                 self.broadcast(redMsg, self.redAdj, "red", True)
-                self.showGraph(self.redAdj, (1,0,0,0.4))
-            self.printStat()
+                # self.showGraph(self.redAdj, (1,0,0,0.4))
+            if slow:
+                self.printStat()
             # Blue
-            print(f"====================== Blue's Turn (Energy left: {self.nodes[0].energy}) ======================")
+            if slow:
+                print(f"====================== Blue's Turn (Energy left: {self.nodes[0].energy}) ======================")
             blueMsg = self.nodes[0].chooseAction(self.nodes[self.greenNum + 2:],self)
             if (blueMsg == 1):
                 grey = random.choice(list(self.nodes[self.greenNum + 2:]))
@@ -569,22 +592,27 @@ class Game:
                 else:
                     self.broadcast(grey.messages["BLUE"], greyAdj, "blue", False)
                 # print(f"Grey node: {grey}")
-                self.showGraph(greyAdj, (0.5,0.5,0.5,0.4), grey)
+                # self.showGraph(greyAdj, (0.5,0.5,0.5,0.4), grey)
                 self.nodes.remove(grey)
             elif (blueMsg == -1):
                 pass
             else:
                 self.broadcast(blueMsg, self.blueAdj, "blue", True)
-                self.showGraph(self.blueAdj, (0,0,1,0.4))
-            self.printStat()
+                if slow:
+                    self.showGraph(self.blueAdj, (0,0,1,0.4))
+            if slow:
+                self.printStat()
 
             # Green
-            print(f"====================== Green's Turn ======================")
+            if slow:
+                print(f"====================== Green's Turn ======================")
             self.socialise()
-            self.showGraph(self.greenAdj, (0,1,0,0.4))
+            if slow:
+                self.showGraph(self.greenAdj, (0,1,0,0.4))
             
             self.connectGreen()
-            self.printStat()
+            if slow:
+                self.printStat()
             # Check win
             win = self.checkWin()
             
@@ -594,33 +622,35 @@ class Game:
         #     print("RED WINS")
         return win
 
-    def initGame(self, ):
-        self.startGame()
+    def initGame(self, slowMode):
+        if slowMode:
+            self.startGame()
         self.createPop()
-        return self.runGame()
+        return self.runGame(slowMode)
 
-def main():
+def main(simulate):
     np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
-    # blue = 0
-    # red = 0
-    # total = 1000
-    # for i in range(total):
-    #     G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE, False, False)
-    #     result = G1.initGame()
-        
-    #     if result == 1:
-    #         blue += 1
-    #     else:
-    #         red += 1
+    if simulate:
+        blue = 0
+        red = 0
+        total = 100
+        for i in range(total):
+            G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE, True, True)
+            result = G1.initGame(False)
             
-    # print(f"Blue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%")
-
-    G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE,False,False)
-    result = G1.initGame()
-    if result == 1:
-        print("Blue Won")
+            if result == 1:
+                blue += 1
+            else:
+                red += 1
+                
+        print(f"Blue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%")
     else:
-        print("Red Won")
+        G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE,False,False)
+        result = G1.initGame(True)
+        if result == 1:
+            print("Blue Won")
+        else:
+            print("Red Won")
 
 if __name__=="__main__":
-    main()
+    main(True)
