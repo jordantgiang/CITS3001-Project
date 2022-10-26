@@ -121,7 +121,6 @@ class Blue:
 class Red:
     # Constructor
     def __init__(self, followers):
-        self.followers = followers
         self.messages = {
             "M1": {"loss": 0.015, "strength": 1, "message": "Blue is racist"}, 
             "M2": {"loss": 0.025, "strength": 1.5, "message": "Blue support child labour"},
@@ -130,25 +129,26 @@ class Red:
             "M5": {"loss": 0.055, "strength": 3, "message": "Blue uses birds to stalk people"}
         }
 
-    def userAction(self):
-        print("---- Message Options for Red ----")
-        print(f"{'Message':38}{'Strength':15}{'Probability of follower lost'}")
-        print(f"1. {self.messages['M1']['message']:35}{self.messages['M1']['strength']:<15}{self.messages['M1']['loss']}")
-        print(f"2. {self.messages['M2']['message']:35}{self.messages['M2']['strength']:<15}{self.messages['M2']['loss']}")
-        print(f"3. {self.messages['M3']['message']:35}{self.messages['M3']['strength']:<15}{self.messages['M3']['loss']}")
-        print(f"4. {self.messages['M4']['message']:35}{self.messages['M4']['strength']:<15}{self.messages['M4']['loss']}")
-        print(f"5. {self.messages['M5']['message']:35}{self.messages['M5']['strength']:<15}{self.messages['M5']['loss']}")
-        print("---------------------------------")
-        while True:
-            try:
-                m = int(input("Which message would you like to select? (Enter an integer between 1-5): "))
-                if m >= 0 and m <=5:
-                    print()
-                    return self.messages[f"M{m}"]
-            except KeyboardInterrupt:
-                    exit()
-            except:
-                continue
+    def userAction(self,game):
+        if len(game.redAdj) > 0:
+            print("---- Message Options for Red ----")
+            print(f"{'Message':38}{'Strength':15}{'Probability of follower lost'}")
+            print(f"1. {self.messages['M1']['message']:35}{self.messages['M1']['strength']:<15}{self.messages['M1']['loss']}")
+            print(f"2. {self.messages['M2']['message']:35}{self.messages['M2']['strength']:<15}{self.messages['M2']['loss']}")
+            print(f"3. {self.messages['M3']['message']:35}{self.messages['M3']['strength']:<15}{self.messages['M3']['loss']}")
+            print(f"4. {self.messages['M4']['message']:35}{self.messages['M4']['strength']:<15}{self.messages['M4']['loss']}")
+            print(f"5. {self.messages['M5']['message']:35}{self.messages['M5']['strength']:<15}{self.messages['M5']['loss']}")
+            print("---------------------------------")
+            while True:
+                try:
+                    m = int(input("Which message would you like to select? (Enter an integer between 1-5): "))
+                    if m >= 0 and m <=5:
+                        print()
+                        return self.messages[f"M{m}"]
+                except KeyboardInterrupt:
+                        exit()
+                except:
+                    continue
 
     def AIAction(self,game):
         return random.choice(list(self.messages.values()))
@@ -157,7 +157,7 @@ class Red:
         if game.redIsAi:
             return self.AIAction(game)
         else:
-            return self.userAction()
+            return self.userAction(game)
         
         # return self.messages["M5"]
 
@@ -409,6 +409,20 @@ class Game:
             self.nodes.append(Grey(spy))
 
     def checkWin(self):
+        if (self.nodes[0].energy == 0 and len(self.nodes[1].followers) == 0 and len(self.nodes) == self.greenNum + 2):
+            Voters = 0
+            NonVoters = 0
+            for k in range(self.greenNum):
+                node = self.nodes[k+2]
+                if (node.vote):
+                    Voters += 1
+                else:
+                    NonVoters += 1
+            if Voters >= NonVoters:
+                return 1
+            else:
+                return 2
+
         certainVoters = 0
         certainNonVoters = 0
         for k in range(self.greenNum):
