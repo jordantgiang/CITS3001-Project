@@ -97,11 +97,27 @@ class Blue:
 
     def AIAction(self,greyAgents,game):
         if (self.energy == 0):
-            return -1
-        elif self.energy >= 5:
-            return self.messages["M5"] 
+            if len(greyAgents) > 0:
+                return 1
+            else:
+                return -1
+
+        Vperc, NVperc = game.calcVoters()
+        if Vperc <= 70 and self.energy >= 5:
+            return self.messages["M5"]
+        elif Vperc <= 75 and self.energy >= 4:
+            return self.messages["M4"]
+        elif Vperc <= 80 and self.energy >= 3:
+            return self.messages["M3"]
+        if Vperc <= 85 and self.energy >= 2:
+            return self.messages["M2"]
         else:
-            return self.messages[f"M{self.energy}"] 
+            return self.messages["M1"]
+        
+        # elif self.energy >= 5:
+        #     return self.messages["M5"] 
+        # else:
+        #     return self.messages[f"M{self.energy}"] 
 
     def chooseAction(self,greyAgents,game):
         if game.blueIsAi:
@@ -164,18 +180,18 @@ class Red:
         return self.messages["M5"]
 
     def AIAction(self,game):
-        # Vperc, NVperc = game.calcVoters()
-        # if NVperc <= 70:
-        #     return self.messages["M5"]
-        # elif NVperc <= 75:
-        #     return self.messages["M4"]
-        # elif NVperc <= 80:
-        #     return self.messages["M3"]
-        # if NVperc <= 85:
-        #     return self.messages["M2"]
-        # else:
-        #     return self.messages["M1"]
-        return self.messages["M5"]
+        Vperc, NVperc = game.calcVoters()
+        if NVperc <= 70:
+            return self.messages["M5"]
+        elif NVperc <= 75:
+            return self.messages["M4"]
+        elif NVperc <= 80:
+            return self.messages["M3"]
+        if NVperc <= 85:
+            return self.messages["M2"]
+        else:
+            return self.messages["M1"]
+        # return self.messages["M5"]
 
     def chooseAction(self,game):
         if game.redIsAi:
@@ -708,4 +724,4 @@ def main(simulate):
             print("Red Won")
 
 if __name__=="__main__":
-    main(True)
+    main(False)
