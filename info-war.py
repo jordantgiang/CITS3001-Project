@@ -7,7 +7,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 import networkx as nx
+import time
 import random
+import warnings
+
 
 
 # Global Constants
@@ -34,11 +37,11 @@ class Blue:
     def __init__(self):
         self.energy = 100
         self.messages = {
-            "M1": {"cost": 1, "strength": 0.5, "message": "BLUE loves you"}, 
-            "M2": {"cost": 2, "strength": 1.0, "message": "Trust in BLUE"},
-            "M3": {"cost": 3, "strength": 1.5, "message": "BLUE is true"},
-            "M4": {"cost": 4, "strength": 2.0, "message": "BLUE is better"},
-            "M5": {"cost": 5, "strength": 2.5, "message": "Your future depends on your vote"}
+            "M1": {"cost": 1, "strength": 0.5, "message": "RED promises unrealistic policies"},
+            "M2": {"cost": 2, "strength": 1.0, "message": "RED likely to be discredited"},
+            "M3": {"cost": 3, "strength": 1.5, "message": "RED rumoured to be spreading misinformation"},
+            "M4": {"cost": 4, "strength": 2.0, "message": "RED under investigation by federal police"},
+            "M5": {"cost": 5, "strength": 2.5, "message": "RED suspected to have terrorist ties"}
         }
     
     def userAction(self, greyAgents):
@@ -48,7 +51,7 @@ class Blue:
         if greyNum > 0:
             while True:
                 try:
-                    g = input(f"X{greyNum} grey agents left. Would you like to introduce grey? (Enter y/n): ")
+                    g = input(f"Would you like to introduce a Grey agent? (Enter y/n): ")
                     if g == "y":
                         print()
                         return 1
@@ -61,17 +64,17 @@ class Blue:
                     continue
             print()
         if self.energy > 0:
-            print("---- Message Options for Blue ----")
-            print(f"{'Message':38}{'Strength':15}{'Energy Cost'}")
-            print(f"1. {self.messages['M1']['message']:35}{self.messages['M1']['strength']:<15}{self.messages['M1']['cost']}")
-            print(f"2. {self.messages['M2']['message']:35}{self.messages['M2']['strength']:<15}{self.messages['M2']['cost']}")
-            print(f"3. {self.messages['M3']['message']:35}{self.messages['M3']['strength']:<15}{self.messages['M3']['cost']}")
-            print(f"4. {self.messages['M4']['message']:35}{self.messages['M4']['strength']:<15}{self.messages['M4']['cost']}")
-            print(f"5. {self.messages['M5']['message']:35}{self.messages['M5']['strength']:<15}{self.messages['M5']['cost']}")
-            print("---------------------------------")
+            print(f"---- Message Options for Blue {'-'*70}")
+            print(f"{'Message':48}{'Strength':15}{'Energy Cost'}")
+            print(f"1. {self.messages['M1']['message']:45}{self.messages['M1']['strength']:<15}{self.messages['M1']['cost']}")
+            print(f"2. {self.messages['M2']['message']:45}{self.messages['M2']['strength']:<15}{self.messages['M2']['cost']}")
+            print(f"3. {self.messages['M3']['message']:45}{self.messages['M3']['strength']:<15}{self.messages['M3']['cost']}")
+            print(f"4. {self.messages['M4']['message']:45}{self.messages['M4']['strength']:<15}{self.messages['M4']['cost']}")
+            print(f"5. {self.messages['M5']['message']:45}{self.messages['M5']['strength']:<15}{self.messages['M5']['cost']}")
+            print(f"{'-'*100}")
             while True:
                 try:
-                    m = int(input("Which message would you like to select? (Enter an integer between 1-5): "))
+                    m = int(input("\nWhich message would you like to select? (Enter an integer between 1-5): "))
                     if m > 0 and m <=5:
                         if m > self.energy:
                             print("Not enough energy")
@@ -82,6 +85,9 @@ class Blue:
                     exit()
                 except:
                     continue
+        else:
+            return -1
+
     def randomAIAction(self,greyAgents,game):
         # Randomly chooses between grey node and broadcast
         if (len(greyAgents) != 0 and random.random() < 0.1):
@@ -176,26 +182,26 @@ class Red:
     # Constructor
     def __init__(self, followers):
         self.messages = {
-            "M1": {"loss": 0.02, "strength": 1.0, "message": "Blue is racist"}, 
-            "M2": {"loss": 0.03, "strength": 1.5, "message": "Blue support child labour"},
-            "M3": {"loss": 0.04, "strength": 2.0, "message": "Blue corrupts"},
-            "M4": {"loss": 0.05, "strength": 2.5, "message": "Blue support human experiments"},
-            "M5": {"loss": 0.06, "strength": 3.0, "message": "Blue uses birds to stalk people"}
+            "M1": {"loss": 0.02, "strength": 1.0, "message": "Blue is racist"},
+            "M2": {"loss": 0.03, "strength": 1.5, "message": "Blue supports child labour"},
+            "M3": {"loss": 0.04, "strength": 2.0, "message": "Blue is corrupted"},
+            "M4": {"loss": 0.05, "strength": 2.5, "message": "Blue supports human experimentation"},
+            "M5": {"loss": 0.06, "strength": 3.0, "message": "Blue uses robots birds to spy on population"}
         }
 
     def userAction(self,game):
         if len(game.redAdj) > 0:
-            print("---- Message Options for Red ----")
-            print(f"{'Message':38}{'Strength':15}{'Probability of follower lost'}")
-            print(f"1. {self.messages['M1']['message']:35}{self.messages['M1']['strength']:<15}{self.messages['M1']['loss']}")
-            print(f"2. {self.messages['M2']['message']:35}{self.messages['M2']['strength']:<15}{self.messages['M2']['loss']}")
-            print(f"3. {self.messages['M3']['message']:35}{self.messages['M3']['strength']:<15}{self.messages['M3']['loss']}")
-            print(f"4. {self.messages['M4']['message']:35}{self.messages['M4']['strength']:<15}{self.messages['M4']['loss']}")
-            print(f"5. {self.messages['M5']['message']:35}{self.messages['M5']['strength']:<15}{self.messages['M5']['loss']}")
-            print("---------------------------------")
+            print(f"---- Message Options for Red {'-'*71}")
+            print(f"{'Message':48}{'Strength':15}{'Probability of follower lost'}")
+            print(f"1. {self.messages['M1']['message']:45}{self.messages['M1']['strength']:<15}{self.messages['M1']['loss']}")
+            print(f"2. {self.messages['M2']['message']:45}{self.messages['M2']['strength']:<15}{self.messages['M2']['loss']}")
+            print(f"3. {self.messages['M3']['message']:45}{self.messages['M3']['strength']:<15}{self.messages['M3']['loss']}")
+            print(f"4. {self.messages['M4']['message']:45}{self.messages['M4']['strength']:<15}{self.messages['M4']['loss']}")
+            print(f"5. {self.messages['M5']['message']:45}{self.messages['M5']['strength']:<15}{self.messages['M5']['loss']}")
+            print(f"{'-'*100}")
             while True:
                 try:
-                    m = int(input("Which message would you like to select? (Enter an integer between 1-5): "))
+                    m = int(input("\nWhich message would you like to select? (Enter an integer between 1-5): "))
                     if m >= 0 and m <=5:
                         print()
                         return self.messages[f"M{m}"]
@@ -256,8 +262,8 @@ class Grey:
     def __init__(self, spy):
         self.spy = spy
         self.messages = {
-            "BLUE": {"cost": 5, "strength": 2.5, "message": None},
-            "RED": {"loss": 0.05, "strength": 6, "message": None}
+            "BLUE": {"strength": 2.5, "message": "We encourage everyone to vote"},
+            "RED": {"strength": 6, "message": "Voting doesn't make a difference1"}
         }
 
 
@@ -286,24 +292,24 @@ class Game:
 
     # Get user input
     def startGame(self):
-        print("------ Welcome to Information War Game ------")
-        print("------ Game Settings ------")
+        print(f"\n==== WELCOME TO INFORMATION WAR GAME {'='*63}")
+        print(f"---- Game Settings {'-'*81}\n")
 
         while True:
             try:
-                redPlayer = input("AI/Human for Red Team (Enter AI/Human): ").lower()
+                redPlayer = input(f"{'      Red Team (Enter AI/Human):  '} ").lower()
                 if redPlayer == "ai" or redPlayer =="human":
                     self.redIsAi = False if redPlayer == "human" else True
                     break
             except KeyboardInterrupt:
                 exit()
         while True:
-            bluePlayer = input("AI/Human for Blue Team (Enter AI/Human): ").lower()
+            bluePlayer = input(f"{'      Blue Team (Enter AI/Human): '} ").lower()
             if bluePlayer == "ai" or bluePlayer == "human":
                 self.blueIsAi = False if bluePlayer == "human" else True
                 break
         while True:
-            default = input("Would you like to use the default game settings?: (Enter y/n) ").lower()
+            default = input("\n      Would you like to use the default game settings? (Enter y/n): ").lower()
             if default == "y":
                 print()
                 return
@@ -438,12 +444,12 @@ class Game:
                 fixPos[node] = ((i-2) % nrows, (i-2) // nrows)
                 if node.vote:
                     colourMap.append( (0, 0.5, 1) )
-                    voteList[node] = f"V, {round(node.uncertainty, 1)}"
-                    # voteList[node] = f"Vote"
+                    # voteList[node] = f"V, {round(node.uncertainty, 1)}"
+                    voteList[node] = f"Vote"
                 else:
                     colourMap.append( (1, 0.5, 0) )
-                    voteList[node] = f"NV, {round(node.uncertainty, 1)}"
-                    # voteList[node] = f"Not Vote"
+                    # voteList[node] = f"NV, {round(node.uncertainty, 1)}"
+                    voteList[node] = f"Not Vote"
                 
         self.graph.add_edges_from(adj)
         # print(voteList.values())
@@ -644,69 +650,121 @@ class Game:
         VStr = f"{round(V/self.greenNum * 100,1)}% ({V})"
         NVStr = f"{round(NV/self.greenNum * 100,1)}% ({NV})"
         
-        print("~~~~~~ STATISTIC ~~~~~~")
         # print(f"{'Proportion of Certain Voters':^28}{'Proportion of Uncertain Voters':^38}{'Proportion of Uncertain Non-Voters'}{'Proportion of Certain Non-Voters':^38}")
         # print(f"{cVStr:^28}{ucVStr:^38}{cNVStr:^34}{ucNVStr:^38}")
-        
-        print(f"{'Proportion of Voters':^28}{'Proportion of Non-Voters'}")
-        print(f"{VStr:^28}{NVStr}")
+        print(f"{'-'*30:>40}{' '*20}{'-'*30:<40}")
+        print(f"{'|':>10}{'Proportion of Voters':^30}{'|':<10}{'|':>10}{'Proportion of Non-Voters':^30}{'|':<10}")
+        print(f"{'|':>10}{VStr:^30}{'|':<10}{'|':>10}{NVStr:^30}{'|':<10}")
+        print(f"{'-'*30:>40}{' '*20}{'-'*30:<40}")
         
         print()
 
     def runGame(self, fastMode):
         win = self.checkWin()
-        isGrey = True
         round = 1
         while (win == 0):
-            if (len(self.nodes) == self.greenNum + 2 and isGrey):
-                pass
-                isGrey = False
-            # Red
             if (not fastMode):
-                print(f"====================== Red's Turn (Followers left: {len(self.redAdj)}) ======================")
-            redMsg = self.nodes[1].chooseAction(self)
-            if (len(self.redAdj) == 0):
-                pass
-            else:
-                self.broadcast(redMsg, self.redAdj, "red", True)
-                if (not fastMode):
-                    self.showGraph(self.redAdj, (1,0,0,0.4))
-            if (not fastMode):
+                # Round Begins
+                print(f"============================================= ROUND  {round} =============================================\n")
+                self.showGraph([], (0,0,0,0))
+                
+                # Red's turn begins
+                print(f"-------------------------------------------- Red's Turn --------------------------------------------\n")
+                
+                
                 self.printStat()
-            # Blue
+                    
+                print(f"{'-'*90:^100}\n")
+                
+                print(f"{'-'*30:>40}{' '*20}{'-'*30:<40}")
+                print(f"{'|':>10}{'Number of Followers':^30}{'|':<10}{'|':>10}{'Grey Agents Available':^30}{'|':<10}")
+                print(f"{'|':>10}{len(self.redAdj):^30}{'|':<10}{'|':>10}{len(self.nodes) - (self.greenNum + 2):^30}{'|':<10}")
+                print(f"{'-'*30:>40}{' '*20}{'-'*30:<40}\n")
+                
+            redMsg = self.nodes[1].chooseAction(self)
+            
             if (not fastMode):
-                print(f"====================== Blue's Turn (Energy left: {self.nodes[0].energy}) ======================")
+                actionStr = f"Red has broadcasted '{redMsg['message']}' to {len(self.redAdj)} followers"
+                print(f"{'-'*94:^100}")
+                print(f"{'|':>3}{actionStr:^94}{'|':<3}")
+                print(f"{'-'*94:^100}\n")
+            
+            if (len(self.redAdj) != 0):
+                self.broadcast(redMsg, self.redAdj, "red", True)
+                
+            if (not fastMode):
+                self.showGraph(self.redAdj, (1,0,0,0.4))
+                
+                # Blue's turn
+                print(f"------------------------------------------- Blue's Turn --------------------------------------------\n")
+                
+                self.printStat()
+                
+                print(f"{'-'*90:^100}\n")
+                
+                print(f"{'-'*30:>40}{' '*20}{'-'*30:<40}")
+                print(f"{'|':>10}{'Energy Available':^30}{'|':<10}{'|':>10}{'Grey Agents Available':^30}{'|':<10}")
+                print(f"{'|':>10}{self.nodes[0].energy:^30}{'|':<10}{'|':>10}{len(self.nodes) - (self.greenNum + 2):^30}{'|':<10}")
+                print(f"{'-'*30:>40}{' '*20}{'-'*30:<40}\n")
+                
             blueMsg = self.nodes[0].chooseAction(self.nodes[self.greenNum + 2:],self)
+            
             if (blueMsg == 1):
+                
+                if (not fastMode):
+                    actionStr = f"Blue has introduced a Grey agent"
+                    print(f"{'-'*94:^100}")
+                    print(f"{'|':>3}{actionStr:^94}{'|':<3}")
+                    print(f"{'-'*94:^100}\n")
+                    
+                    print(f"------------------------------------------- Grey's Turn --------------------------------------------\n")
+                
                 grey = random.choice(list(self.nodes[self.greenNum + 2:]))
                 greyAdj = list(zip([grey]*self.greenNum, self.nodes[2:self.greenNum+2]))
                 if (grey.spy):
+                    actionStr = f"Grey is a Spy, it has broadcasted '{grey.messages['RED']['message']}' to EVERYONE!"
                     self.broadcast(grey.messages["RED"], greyAdj, "red", False)
                 else:
+                    actionStr = f"Grey is an Influencer, it has broadcasted '{grey.messages['BLUE']['message']}' to EVERYONE!"
                     self.broadcast(grey.messages["BLUE"], greyAdj, "blue", False)
-                # print(f"Grey node: {grey}")
                 if (not fastMode):
+                    print(f"{'-'*94:^100}")
+                    print(f"{'|':>3}{actionStr:^94}{'|':<3}")
+                    print(f"{'-'*94:^100}\n")
                     self.showGraph(greyAdj, (0.5,0.5,0.5,0.4), grey)
                 self.nodes.remove(grey)
             elif (blueMsg == -1):
-                pass
+                if (not fastMode):
+                    actionStr = f"Blue does not make an action"
+                    print(f"{'-'*94:^100}")
+                    print(f"{'|':>3}{actionStr:^94}{'|':<3}")
+                    print(f"{'-'*94:^100}\n")
+            
+            
             else:
+                if (not fastMode):
+                    actionStr = f"Blue has broadcasted '{blueMsg['message']}' to EVERYONE"
+                    print(f"{'-'*94:^100}")
+                    print(f"{'|':>3}{actionStr:^94}{'|':<3}")
+                    print(f"{'-'*94:^100}\n")
                 self.broadcast(blueMsg, self.blueAdj, "blue", True)
                 if (not fastMode):
                     self.showGraph(self.blueAdj, (0,0,1,0.4))
-            if (not fastMode):
-                self.printStat()
 
             # Green
             if (not fastMode):
-                print(f"====================== Green's Turn ======================")
+                print(f"------------------------------------------- Green's Turn -------------------------------------------\n")
+                self.printStat()
+                actionStr = f"Green has socialised"
+                print(f"{'-'*94:^100}")
+                print(f"{'|':>3}{actionStr:^94}{'|':<3}")
+                print(f"{'-'*94:^100}\n")
             self.socialise()
             if (not fastMode):
                 self.showGraph(self.greenAdj, (0,1,0,0.4))
             
             self.connectGreen()
-            if (not fastMode):
-                self.printStat()
+                
             # Check win
             win = self.checkWin()
             round += 1
@@ -720,13 +778,14 @@ class Game:
         return win, round
 
     def initGame(self, fastMode):
-        if not fastMode:
+        if (not fastMode):
             self.startGame()
         self.createPop()
         return self.runGame(fastMode)
 
-def main(simulate):
+def main(simulate = False):
     np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+    warnings.filterwarnings("ignore")
     if simulate:
         blue = 0
         red = 0
@@ -739,7 +798,7 @@ def main(simulate):
             else:
                 red += 1
                 
-        print(f"Blue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%")
+        print(f"\nBlue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%\n")
     # total = 1000
     
     # # variable = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
@@ -769,4 +828,8 @@ def main(simulate):
             print("Red Won")
 
 if __name__=="__main__":
+<<<<<<< HEAD
     main(True)
+=======
+    main()
+>>>>>>> ec835f18ffc83925a02a040793e0758cee62480a
