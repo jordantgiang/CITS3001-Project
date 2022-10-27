@@ -153,7 +153,7 @@ class Red:
             "M1": {"loss": 0.02, "strength": 1.0, "message": "Blue is racist"}, 
             "M2": {"loss": 0.03, "strength": 1.5, "message": "Blue support child labour"},
             "M3": {"loss": 0.04, "strength": 2.0, "message": "Blue corrupts"},
-            "M4": {"loss": 0.05, "strength": 2.5, "message": "Blue support human experiments"},
+            "M4": {"loss": 0.05, "strength": 2.5, "message": "Blue support human experimentation"},
             "M5": {"loss": 0.06, "strength": 3.0, "message": "Blue uses birds to stalk people"}
         }
 
@@ -246,27 +246,23 @@ class Game:
         self.blueAdj = []
 
     # Get user input
-    def startGame(self, fastMode):
+    def startGame(self):
         print(f"\n==== WELCOME TO INFORMATION WAR GAME {'='*63}")
         print(f"---- Game Settings {'-'*81}\n")
 
-        if (not fastMode):
-            while True:
-                try:
-                    redPlayer = input(f"{'      Red Team (Enter AI/Human):  '} ").lower()
-                    if redPlayer == "ai" or redPlayer =="human":
-                        self.redIsAi = False if redPlayer == "human" else True
-                        break
-                except KeyboardInterrupt:
-                    exit()
-            while True:
-                bluePlayer = input(f"{'      Blue Team (Enter AI/Human): '} ").lower()
-                if bluePlayer == "ai" or bluePlayer == "human":
-                    self.blueIsAi = False if bluePlayer == "human" else True
+        while True:
+            try:
+                redPlayer = input(f"{'      Red Team (Enter AI/Human):  '} ").lower()
+                if redPlayer == "ai" or redPlayer =="human":
+                    self.redIsAi = False if redPlayer == "human" else True
                     break
-        else:
-            self.redIsAi = True
-            self.blueIsAi = True
+            except KeyboardInterrupt:
+                exit()
+        while True:
+            bluePlayer = input(f"{'      Blue Team (Enter AI/Human): '} ").lower()
+            if bluePlayer == "ai" or bluePlayer == "human":
+                self.blueIsAi = False if bluePlayer == "human" else True
+                break
         while True:
             default = input("\n      Would you like to use the default game settings?: (Enter y/n) ").lower()
             if default == "y":
@@ -403,12 +399,12 @@ class Game:
                 fixPos[node] = ((i-2) % nrows, (i-2) // nrows)
                 if node.vote:
                     colourMap.append( (0, 0.5, 1) )
-                    voteList[node] = f"V, {round(node.uncertainty, 1)}"
-                    # voteList[node] = f"Vote"
+                    # voteList[node] = f"V, {round(node.uncertainty, 1)}"
+                    voteList[node] = f"Vote"
                 else:
                     colourMap.append( (1, 0.5, 0) )
-                    voteList[node] = f"NV, {round(node.uncertainty, 1)}"
-                    # voteList[node] = f"Not Vote"
+                    # voteList[node] = f"NV, {round(node.uncertainty, 1)}"
+                    voteList[node] = f"Not Vote"
                 
         self.graph.add_edges_from(adj)
         # print(voteList.values())
@@ -737,7 +733,8 @@ class Game:
         return win, round
 
     def initGame(self, fastMode):
-        self.startGame(fastMode)
+        if (not fastMode):
+            self.startGame()
         self.createPop()
         return self.runGame(fastMode)
 
@@ -756,7 +753,7 @@ def main(simulate):
             else:
                 red += 1
                 
-        print(f"Blue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%")
+        print(f"\nBlue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%\n")
     # total = 1000
     
     # # variable = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
@@ -779,11 +776,11 @@ def main(simulate):
     #     print(f"Unc_Int: {trial}\n\tBlue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%\n\tRound: {sum(rounds)/len(rounds)}")
     else:
         G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE,False,False)
-        result, rounds = G1.initGame(True)
+        result, rounds = G1.initGame(False)
         if result == 1:
             print("Blue Won")
         else:
             print("Red Won")
 
 if __name__=="__main__":
-    main(False)
+    main(True)
