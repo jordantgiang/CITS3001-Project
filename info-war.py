@@ -26,8 +26,8 @@ INIT_VOTE   = 0.5             # Percentage of green nodes with voting opinion
 WIN_THRESHOLD       = 0.6   # Proportion of population required with agreeing certain (uncertainty < 0) opinions for red/blue to win.
 CHANGE_MAGNITUDE    = 0.5   # Scaling coefficient green-to-green uncertainty change's magnitude
 CERTAINTY_SCALE     = 2     # Scaling coefficient green-to-green uncertainty influence to change
-BC_INFLUENCE        = 1.5   # Scaling coefficient for broadcasting uncertainty change's magnitude
-CERTAINTY_INFLUENCE = 0.05  # Scaling coefficient node uncertainty's influence over change for broadcast
+CERTAINTY_INFLUENCE = 1.5   # Scaling coefficient for broadcasting uncertainty change's magnitude
+BC_INFLUENCE        = 0.05  # Scaling coefficient node uncertainty's influence over change for broadcast
 
 # Classes for nodes
 # --------------------------------------------------- 
@@ -150,7 +150,7 @@ class Blue:
 
 class Red:
     # Constructor
-    def __init__(self, followers):
+    def __init__(self):
         self.messages = {
             "M1": {"loss": 0.02, "strength": 1.0, "message": "Blue is racist"},
             "M2": {"loss": 0.03, "strength": 1.5, "message": "Blue supports child labour"},
@@ -441,7 +441,7 @@ class Game:
     
     # Creates an initial game state graph 
     def createPop(self):
-        self.nodes = [Blue(), Red(range(2, 2+self.greenNum))]
+        self.nodes = [Blue(), Red()]
         
         for i in range(self.greenNum):
             # Node's uncertainty and opinion
@@ -746,7 +746,7 @@ def main(simulate = False):
     if simulate:
         total = 1000
         
-        variable = [(-0.5, 0.5), (-0.9, 0.9)]
+        variable = [(-0.5, 0.5)]
         for trial in variable:
             blue = 0
             red = 0
@@ -783,4 +783,4 @@ def main(simulate = False):
             print("Red Won")
 
 if __name__=="__main__":
-    main()
+    main(True)
