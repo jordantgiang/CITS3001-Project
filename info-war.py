@@ -16,10 +16,10 @@ import warnings
 # Global Constants
 # --------------------------------------------------- 
 # Inputs
-GREY_NUM = 4 # Number of grey agent
-GREEN_NUM = 60  # Number of green agent
+GREY_NUM = 9 # Number of grey agent
+GREEN_NUM = 100  # Number of green agent
 CON_PROB = 0.01 # Probability of initial connection between any 2 green nodes
-SPY_PROP = 0.25 # Proportion of agents who are spies from the red team
+SPY_PROP = 0.5 # Proportion of agents who are spies from the red team
 UNC_RANGE = (-0.5, 0.5) # Initial uncertainty range for green nodes
 INIT_VOTE = 0.5 # Percentage of green nodes with voting opinion
 
@@ -236,7 +236,6 @@ class Game:
         self.initVote = initVote
         self.redIsAi = redIsAi
         self.blueIsAi = blueIsAi
-        self.turn = "RED"
 
         self.graph = nx.Graph()
         # List of
@@ -617,7 +616,9 @@ class Game:
     def runGame(self, fastMode):
         win = self.checkWin()
         round = 1
+        times = []
         while (win == 0):
+            turnStart = time.time()
             if (not fastMode):
                 # Round Begins
                 print(f"============================================= ROUND  {round} =============================================\n")
@@ -723,14 +724,12 @@ class Game:
             # Check win
             win = self.checkWin()
             round += 1
+            turnEnd = time.time()
+            times.append(turnEnd - turnStart)
             
-        # if win==1:
-        #     print("BLUE WINS")
-        # elif win==2:
-        #     print("RED WINS")
         if (not fastMode):
             print(f"Total rounds: {round}")
-        return win, round
+        return win, round, times
 
     def initGame(self, fastMode):
         if (not fastMode):
@@ -742,18 +741,35 @@ def main(simulate = False):
     np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
     warnings.filterwarnings("ignore")
     if simulate:
-        blue = 0
-        red = 0
-        total = 100
-        for i in range(total):
-            G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE, True, True)
-            result, rounds = G1.initGame(True)
-            if result == 1:
-                blue += 1
-            else:
-                red += 1
+        total = 1000
+        
+        variable = [(-0.9, 0.9), (-0.1,0.1)]
+        for trial in variable:
+            blue = 0
+            red = 0
+            gameTimes = []
+            gameRounds = []
+            gameDurations = []
+            for i in range(total):
+                G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,trial,INIT_VOTE, True, True)
+                gameStart = time.time()
+                result, rounds, times = G1.initGame(True)
+                gameEnd = time.time()
+                if result == 1:
+                    blue += 1
+                else:
+                    red += 1
                 
-        print(f"\nBlue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%\n")
+                gameTimes.append(sum(times)/rounds)
+                gameRounds.append(rounds)
+                gameDurations.append(gameEnd - gameStart)
+            
+            print(f"\nUncertainty Interval: {trial}")
+            print(f"\tBlue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%")
+            print(f"\tAverage game duration:\t\t{sum(gameDurations)/len(gameDurations)}")
+            print(f"\tAverage rounds per game:\t{sum(gameRounds)/len(gameRounds)}")
+            print(f"\tAverage seconds per round:\t{sum(gameTimes)/len(gameTimes)}")
+            
     # total = 1000
     
     # # variable = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
@@ -783,4 +799,4 @@ def main(simulate = False):
             print("Red Won")
 
 if __name__=="__main__":
-    main()
+    main(True)
