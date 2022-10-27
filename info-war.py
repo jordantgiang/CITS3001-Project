@@ -14,7 +14,7 @@ import random
 # --------------------------------------------------- 
 # Inputs
 GREY_NUM = 0 # Number of grey agent
-GREEN_NUM = 40  # Number of green agent
+GREEN_NUM = 60  # Number of green agent
 CON_PROB = 0.01 # Probability of initial connection between any 2 green nodes
 SPY_PROP = 0.25 # Proportion of agents who are spies from the red team
 UNC_RANGE = (-0.5, 0.5) # Initial uncertainty range for green nodes
@@ -82,9 +82,7 @@ class Blue:
                     exit()
                 except:
                     continue
-
-
-    def AIAction(self,greyAgents,game):
+    def randomAIAction(self,greyAgents,game):
         # Randomly chooses between grey node and broadcast
         if (len(greyAgents) != 0 and random.random() < 0.1):
             return 1
@@ -96,6 +94,14 @@ class Blue:
             # msg = self.messages["M5"]
             if (msg["cost"] <= self.energy):
                 return msg
+
+    def AIAction(self,greyAgents,game):
+        if (self.energy == 0):
+            return -1
+        elif self.energy >= 5:
+            return self.messages["M5"] 
+        else:
+            return self.messages[f"M{self.energy}"] 
 
     def chooseAction(self,greyAgents,game):
         if game.blueIsAi:
@@ -122,11 +128,11 @@ class Red:
     # Constructor
     def __init__(self, followers):
         self.messages = {
-            "M1": {"loss": 0.01, "strength": 1.0, "message": "Blue is racist"}, 
-            "M2": {"loss": 0.02, "strength": 1.5, "message": "Blue support child labour"},
-            "M3": {"loss": 0.03, "strength": 2.0, "message": "Blue corrupts"},
-            "M4": {"loss": 0.04, "strength": 2.5, "message": "Blue support human experiments"},
-            "M5": {"loss": 0.05, "strength": 3.0, "message": "Blue uses birds to stalk people"}
+            "M1": {"loss": 0.02, "strength": 1.0, "message": "Blue is racist"}, 
+            "M2": {"loss": 0.03, "strength": 1.5, "message": "Blue support child labour"},
+            "M3": {"loss": 0.04, "strength": 2.0, "message": "Blue corrupts"},
+            "M4": {"loss": 0.05, "strength": 2.5, "message": "Blue support human experiments"},
+            "M5": {"loss": 0.06, "strength": 3.0, "message": "Blue uses birds to stalk people"}
         }
 
     def userAction(self,game):
@@ -159,13 +165,13 @@ class Red:
 
     def AIAction(self,game):
         # Vperc, NVperc = game.calcVoters()
-        # if NVperc <= 40:
+        # if NVperc <= 70:
         #     return self.messages["M5"]
-        # elif NVperc <= 45:
+        # elif NVperc <= 75:
         #     return self.messages["M4"]
-        # elif NVperc <= 50:
+        # elif NVperc <= 80:
         #     return self.messages["M3"]
-        # if NVperc <= 55:
+        # if NVperc <= 85:
         #     return self.messages["M2"]
         # else:
         #     return self.messages["M1"]
@@ -666,8 +672,7 @@ def main(simulate):
         total = 100
         for i in range(total):
             G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE, True, True)
-            result = G1.initGame(True)
-            
+            result, rounds = G1.initGame(True)
             if result == 1:
                 blue += 1
             else:
@@ -696,11 +701,11 @@ def main(simulate):
     #     print(f"Unc_Int: {trial}\n\tBlue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%\n\tRound: {sum(rounds)/len(rounds)}")
     else:
         G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE,False,False)
-        result = G1.initGame(False)
+        result, rounds = G1.initGame(False)
         if result == 1:
             print("Blue Won")
         else:
             print("Red Won")
 
 if __name__=="__main__":
-    main(False)
+    main(True)
