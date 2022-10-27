@@ -165,7 +165,7 @@ class Blue:
     # Method for Blue choosing an action
     def chooseAction(self, greyAgents, game):
         if game.blueIsAi:
-            return self.AIAction(greyAgents)
+            return self.AIAction(greyAgents, game)
         else:
             return self.userAction(greyAgents)
 
@@ -239,9 +239,9 @@ class Red:
             return self.messages["M1"]
 
     # Method for Blue choosing an action
-    def chooseAction(self,game):
+    def chooseAction(self, game):
         if game.redIsAi:
-            return self.AIAction()
+            return self.AIAction(game)
         else:
             return self.userAction(game)
 
@@ -815,4 +815,4 @@ def main(simulate = False):
             print("Red Won")
 
 if __name__=="__main__":
-    main(True)
+    main()
