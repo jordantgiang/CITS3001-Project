@@ -37,11 +37,11 @@ class Blue:
     def __init__(self):
         self.energy = 100
         self.messages = {
-            "M1": {"cost": 1, "strength": 0.5, "message": "BLUE loves you"}, 
-            "M2": {"cost": 2, "strength": 1.0, "message": "Trust in BLUE"},
-            "M3": {"cost": 3, "strength": 1.5, "message": "BLUE is true"},
-            "M4": {"cost": 4, "strength": 2.0, "message": "BLUE is better"},
-            "M5": {"cost": 5, "strength": 2.5, "message": "Your future depends on your vote"}
+            "M1": {"cost": 1, "strength": 0.5, "message": "RED promises unrealistic policies"},
+            "M2": {"cost": 2, "strength": 1.0, "message": "RED likely to be discredited"},
+            "M3": {"cost": 3, "strength": 1.5, "message": "RED rumoured to be spreading misinformation"},
+            "M4": {"cost": 4, "strength": 2.0, "message": "RED under investigation by federal police"},
+            "M5": {"cost": 5, "strength": 2.5, "message": "RED suspected to have terrorist ties"}
         }
     
     def userAction(self, greyAgents):
@@ -64,13 +64,13 @@ class Blue:
                     continue
             print()
         if self.energy > 0:
-            print(f"---- Message Options for Red {'-'*70}")
-            print(f"{'Message':38}{'Strength':15}{'Energy Cost'}")
-            print(f"1. {self.messages['M1']['message']:35}{self.messages['M1']['strength']:<15}{self.messages['M1']['cost']}")
-            print(f"2. {self.messages['M2']['message']:35}{self.messages['M2']['strength']:<15}{self.messages['M2']['cost']}")
-            print(f"3. {self.messages['M3']['message']:35}{self.messages['M3']['strength']:<15}{self.messages['M3']['cost']}")
-            print(f"4. {self.messages['M4']['message']:35}{self.messages['M4']['strength']:<15}{self.messages['M4']['cost']}")
-            print(f"5. {self.messages['M5']['message']:35}{self.messages['M5']['strength']:<15}{self.messages['M5']['cost']}")
+            print(f"---- Message Options for Blue {'-'*70}")
+            print(f"{'Message':48}{'Strength':15}{'Energy Cost'}")
+            print(f"1. {self.messages['M1']['message']:45}{self.messages['M1']['strength']:<15}{self.messages['M1']['cost']}")
+            print(f"2. {self.messages['M2']['message']:45}{self.messages['M2']['strength']:<15}{self.messages['M2']['cost']}")
+            print(f"3. {self.messages['M3']['message']:45}{self.messages['M3']['strength']:<15}{self.messages['M3']['cost']}")
+            print(f"4. {self.messages['M4']['message']:45}{self.messages['M4']['strength']:<15}{self.messages['M4']['cost']}")
+            print(f"5. {self.messages['M5']['message']:45}{self.messages['M5']['strength']:<15}{self.messages['M5']['cost']}")
             print(f"{'-'*100}")
             while True:
                 try:
@@ -150,22 +150,22 @@ class Red:
     # Constructor
     def __init__(self, followers):
         self.messages = {
-            "M1": {"loss": 0.02, "strength": 1.0, "message": "Blue is racist"}, 
-            "M2": {"loss": 0.03, "strength": 1.5, "message": "Blue support child labour"},
-            "M3": {"loss": 0.04, "strength": 2.0, "message": "Blue corrupts"},
-            "M4": {"loss": 0.05, "strength": 2.5, "message": "Blue support human experimentation"},
-            "M5": {"loss": 0.06, "strength": 3.0, "message": "Blue uses birds to stalk people"}
+            "M1": {"loss": 0.02, "strength": 1.0, "message": "Blue is racist"},
+            "M2": {"loss": 0.03, "strength": 1.5, "message": "Blue supports child labour"},
+            "M3": {"loss": 0.04, "strength": 2.0, "message": "Blue is corrupted"},
+            "M4": {"loss": 0.05, "strength": 2.5, "message": "Blue supports human experimentation"},
+            "M5": {"loss": 0.06, "strength": 3.0, "message": "Blue uses robots birds to spy on population"}
         }
 
     def userAction(self,game):
         if len(game.redAdj) > 0:
             print(f"---- Message Options for Red {'-'*71}")
-            print(f"{'Message':38}{'Strength':15}{'Probability of follower lost'}")
-            print(f"1. {self.messages['M1']['message']:35}{self.messages['M1']['strength']:<15}{self.messages['M1']['loss']}")
-            print(f"2. {self.messages['M2']['message']:35}{self.messages['M2']['strength']:<15}{self.messages['M2']['loss']}")
-            print(f"3. {self.messages['M3']['message']:35}{self.messages['M3']['strength']:<15}{self.messages['M3']['loss']}")
-            print(f"4. {self.messages['M4']['message']:35}{self.messages['M4']['strength']:<15}{self.messages['M4']['loss']}")
-            print(f"5. {self.messages['M5']['message']:35}{self.messages['M5']['strength']:<15}{self.messages['M5']['loss']}")
+            print(f"{'Message':48}{'Strength':15}{'Probability of follower lost'}")
+            print(f"1. {self.messages['M1']['message']:45}{self.messages['M1']['strength']:<15}{self.messages['M1']['loss']}")
+            print(f"2. {self.messages['M2']['message']:45}{self.messages['M2']['strength']:<15}{self.messages['M2']['loss']}")
+            print(f"3. {self.messages['M3']['message']:45}{self.messages['M3']['strength']:<15}{self.messages['M3']['loss']}")
+            print(f"4. {self.messages['M4']['message']:45}{self.messages['M4']['strength']:<15}{self.messages['M4']['loss']}")
+            print(f"5. {self.messages['M5']['message']:45}{self.messages['M5']['strength']:<15}{self.messages['M5']['loss']}")
             print(f"{'-'*100}")
             while True:
                 try:
@@ -217,8 +217,8 @@ class Grey:
     def __init__(self, spy):
         self.spy = spy
         self.messages = {
-            "BLUE": {"cost": 5, "strength": 2.5, "message": "GO BLUE"},
-            "RED": {"loss": 0.05, "strength": 6, "message": "GO RED"}
+            "BLUE": {"strength": 2.5, "message": "We encourage everyone to vote"},
+            "RED": {"strength": 6, "message": "Voting doesn't make a difference1"}
         }
 
 
@@ -264,7 +264,7 @@ class Game:
                 self.blueIsAi = False if bluePlayer == "human" else True
                 break
         while True:
-            default = input("\n      Would you like to use the default game settings?: (Enter y/n) ").lower()
+            default = input("\n      Would you like to use the default game settings? (Enter y/n): ").lower()
             if default == "y":
                 print()
                 return
@@ -738,7 +738,7 @@ class Game:
         self.createPop()
         return self.runGame(fastMode)
 
-def main(simulate):
+def main(simulate = False):
     np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
     warnings.filterwarnings("ignore")
     if simulate:
@@ -783,4 +783,4 @@ def main(simulate):
             print("Red Won")
 
 if __name__=="__main__":
-    main(True)
+    main()
