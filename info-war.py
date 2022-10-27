@@ -88,20 +88,42 @@ class Blue:
         else:
             return -1
 
-
-    def AIAction(self,greyAgents,game):
+    def randomAIAction(self,greyAgents,game):
         # Randomly chooses between grey node and broadcast
         if (len(greyAgents) != 0 and random.random() < 0.1):
             return 1
-        # Choosing random message
-        # print(f"Energy: {self.energy}")
+
         if (self.energy == 0):
             return -1
         while (True):
-            # msg = random.choice(list(self.messages.values()))
-            msg = self.messages["M5"]
+            msg = random.choice(list(self.messages.values()))
+            # msg = self.messages["M5"]
             if (msg["cost"] <= self.energy):
                 return msg
+
+    def AIAction(self,greyAgents,game):
+        if (self.energy == 0):
+            if len(greyAgents) > 0:
+                return 1
+            else:
+                return -1
+
+        Vperc, NVperc = game.calcVoters()
+        if Vperc <= 70 and self.energy >= 5:
+            return self.messages["M5"]
+        elif Vperc <= 75 and self.energy >= 4:
+            return self.messages["M4"]
+        elif Vperc <= 80 and self.energy >= 3:
+            return self.messages["M3"]
+        if Vperc <= 85 and self.energy >= 2:
+            return self.messages["M2"]
+        else:
+            return self.messages["M1"]
+        
+        # elif self.energy >= 5:
+        #     return self.messages["M5"] 
+        # else:
+        #     return self.messages[f"M{self.energy}"] 
 
     def chooseAction(self,greyAgents,game):
         if game.blueIsAi:
@@ -128,11 +150,11 @@ class Red:
     # Constructor
     def __init__(self, followers):
         self.messages = {
-            "M1": {"loss": 0.01, "strength": 1.0, "message": "Blue is racist"}, 
-            "M2": {"loss": 0.02, "strength": 1.5, "message": "Blue support child labour"},
-            "M3": {"loss": 0.03, "strength": 2.0, "message": "Blue corrupts"},
-            "M4": {"loss": 0.04, "strength": 2.5, "message": "Blue support human experiments"},
-            "M5": {"loss": 0.05, "strength": 3.0, "message": "Blue uses birds to stalk people"}
+            "M1": {"loss": 0.02, "strength": 1.0, "message": "Blue is racist"}, 
+            "M2": {"loss": 0.03, "strength": 1.5, "message": "Blue support child labour"},
+            "M3": {"loss": 0.04, "strength": 2.0, "message": "Blue corrupts"},
+            "M4": {"loss": 0.05, "strength": 2.5, "message": "Blue support human experiments"},
+            "M5": {"loss": 0.06, "strength": 3.0, "message": "Blue uses birds to stalk people"}
         }
 
     def userAction(self,game):
@@ -156,9 +178,26 @@ class Red:
                 except:
                     continue
 
+    def randomAIAction(self,game):
+        return random.choice(list(self.messages.values()))
+        
     def AIAction(self,game):
         # return random.choice(list(self.messages.values()))
         return self.messages["M5"]
+
+    def AIAction(self,game):
+        Vperc, NVperc = game.calcVoters()
+        if NVperc <= 70:
+            return self.messages["M5"]
+        elif NVperc <= 75:
+            return self.messages["M4"]
+        elif NVperc <= 80:
+            return self.messages["M3"]
+        if NVperc <= 85:
+            return self.messages["M2"]
+        else:
+            return self.messages["M1"]
+        # return self.messages["M5"]
 
     def chooseAction(self,game):
         if game.redIsAi:
@@ -305,8 +344,17 @@ class Game:
         print()
         
         
-        
-
+    # Calculate percentage of voters and non-voters   
+    def calcVoters(self):
+        V, NV = 0, 0
+        for node in self.nodes[2:self.greenNum+2]:
+            if node.vote == True:
+                V += 1
+            else:
+                NV += 1
+        Vperc = V/self.greenNum * 100
+        NVperc =NV/self.greenNum * 100
+        return (Vperc, NVperc)
 
 
     # Visualisation of the current game state graph
@@ -693,9 +741,22 @@ class Game:
         self.createPop()
         return self.runGame(fastMode)
 
-def main():
+def main(simulate):
     np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
     warnings.filterwarnings("ignore")
+    if simulate:
+        blue = 0
+        red = 0
+        total = 100
+        for i in range(total):
+            G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE, True, True)
+            result, rounds = G1.initGame(True)
+            if result == 1:
+                blue += 1
+            else:
+                red += 1
+                
+        print(f"Blue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%")
     # total = 1000
     
     # # variable = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
@@ -716,13 +777,13 @@ def main():
     #             red += 1
                 
     #     print(f"Unc_Int: {trial}\n\tBlue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%\n\tRound: {sum(rounds)/len(rounds)}")
-
-    G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE,False,False)
-    result = G1.initGame(True)
-    if result == 1:
-        print("Blue Won")
     else:
-        print("Red Won")
+        G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE,False,False)
+        result, rounds = G1.initGame(True)
+        if result == 1:
+            print("Blue Won")
+        else:
+            print("Red Won")
 
 if __name__=="__main__":
-    main()
+    main(False)
