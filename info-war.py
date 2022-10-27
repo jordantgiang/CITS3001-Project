@@ -13,10 +13,10 @@ import random
 # Global Constants
 # --------------------------------------------------- 
 # Inputs
-GREY_NUM = 0 # Number of grey agent
+GREY_NUM = 6 # Number of grey agent
 GREEN_NUM = 60  # Number of green agent
 CON_PROB = 0.01 # Probability of initial connection between any 2 green nodes
-SPY_PROP = 0.25 # Proportion of agents who are spies from the red team
+SPY_PROP = 0.35 # Proportion of agents who are spies from the red team
 UNC_RANGE = (-0.5, 0.5) # Initial uncertainty range for green nodes
 INIT_VOTE = 0.5 # Percentage of green nodes with voting opinion
 
@@ -101,19 +101,51 @@ class Blue:
                 return 1
             else:
                 return -1
+        
+        if (self.energy <= 10) and (len(greyAgents) > 0) and (random.random() < 0.5):
+                return 1
 
         Vperc, NVperc = game.calcVoters()
+        # if Vperc <= 70 and self.energy >= 5:
+        #     return self.messages["M5"]
+        # elif Vperc <= 75 and self.energy >= 4:
+        #     return self.messages["M4"]
+        # elif Vperc <= 80 and self.energy >= 3:
+        #     return self.messages["M3"]
+        # if Vperc <= 85 and self.energy >= 2:
+        #     return self.messages["M2"]
+        # else:
+        #     return self.messages["M1"]
+        
         if Vperc <= 70 and self.energy >= 5:
-            return self.messages["M5"]
+            if self.energy >= 30:
+                return self.messages["M5"]
+            elif self.energy >= 20:
+                return self.messages["M4"]
+            else:
+                return self.messages["M3"]
         elif Vperc <= 75 and self.energy >= 4:
-            return self.messages["M4"]
+            if self.energy >= 25:
+                return self.messages["M4"]
+            elif self.energy >= 15:
+                return self.messages["M3"]
+            else:
+                return self.messages["M2"]
         elif Vperc <= 80 and self.energy >= 3:
-            return self.messages["M3"]
+            if self.energy >= 20:
+                return self.messages["M3"]
+            elif self.energy >= 10:
+                return self.messages["M2"]
+            else:
+                return self.messages["M1"]
         if Vperc <= 85 and self.energy >= 2:
-            return self.messages["M2"]
+            if self.energy >= 10:
+                return self.messages["M2"]
+            else:
+                return self.messages["M1"]
         else:
             return self.messages["M1"]
-        
+
         # elif self.energy >= 5:
         #     return self.messages["M5"] 
         # else:
@@ -181,14 +213,27 @@ class Red:
 
     def AIAction(self,game):
         Vperc, NVperc = game.calcVoters()
+        followers = len(game.redAdj)/ game.greenNum
         if NVperc <= 70:
-            return self.messages["M5"]
+            if followers >= 0.5:
+                return self.messages["M5"]
+            else:
+                return self.messages["M4"]
         elif NVperc <= 75:
-            return self.messages["M4"]
+            if followers >= 0.5:
+                return self.messages["M4"]
+            else:
+                return self.messages["M3"]
         elif NVperc <= 80:
-            return self.messages["M3"]
+            if followers >= 0.5:
+                return self.messages["M3"]
+            else:
+                return self.messages["M2"]
         if NVperc <= 85:
-            return self.messages["M2"]
+            if followers >= 0.5:
+                return self.messages["M2"]
+            else:
+                return self.messages["M1"]
         else:
             return self.messages["M1"]
         # return self.messages["M5"]
@@ -685,7 +730,7 @@ def main(simulate):
     if simulate:
         blue = 0
         red = 0
-        total = 100
+        total = 500
         for i in range(total):
             G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,UNC_RANGE,INIT_VOTE, True, True)
             result, rounds = G1.initGame(True)
@@ -724,4 +769,4 @@ def main(simulate):
             print("Red Won")
 
 if __name__=="__main__":
-    main(False)
+    main(True)
