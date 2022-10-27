@@ -124,7 +124,7 @@ class Blue:
                 return msg
 
     # Blue agent that chooses an action based on a set policy
-    def AIAction(self,greyAgents):
+    def AIAction(self, greyAgents, game):
         if (self.energy == 0):
             if len(greyAgents) > 0:
                 return 1
@@ -163,7 +163,7 @@ class Blue:
             return self.messages["M1"]
 
     # Method for Blue choosing an action
-    def chooseAction(self, greyAgents):
+    def chooseAction(self, greyAgents, game):
         if game.blueIsAi:
             return self.AIAction(greyAgents)
         else:
@@ -212,7 +212,7 @@ class Red:
         return random.choice(list(self.messages.values()))
 
     # Red agent that chooses an action based on a set policy
-    def AIAction(self):
+    def AIAction(self, game):
         Vperc, NVperc = game.calcVoters()
         followers = len(game.redAdj)/ game.greenNum
         if NVperc <= 70:
