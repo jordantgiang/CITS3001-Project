@@ -88,6 +88,28 @@ class Blue:
         else:
             return -1
 
+    def M1AIAction(self,greyAgents,game):
+        # Randomly chooses between grey node and broadcast
+        if (len(greyAgents) != 0 and self.energy == 0):
+            return 1
+
+        if (self.energy == 0):
+            return -1
+        else:
+            return self.messages["M1"]
+
+    def M5AIAction(self,greyAgents,game):
+        # Randomly chooses between grey node and broadcast
+        if (len(greyAgents) != 0 and self.energy == 0):
+            return 1
+
+        if (self.energy == 0):
+            return -1
+        elif self.energy >= 5:
+            return self.messages["M5"]
+        else:
+            return self.messages[f"M{self.energy}"]
+
     def randomAIAction(self,greyAgents,game):
         # Randomly chooses between grey node and broadcast
         if (len(greyAgents) != 0 and random.random() < 0.1):
@@ -209,6 +231,12 @@ class Red:
                         exit()
                 except:
                     continue
+
+    def M1AIAction(self,game):
+        return self.messages["M5"]
+
+    def M5AIAction(self,game):
+        return self.messages["M5"]
 
     def randomAIAction(self,game):
         return random.choice(list(self.messages.values()))
@@ -786,14 +814,17 @@ def main(simulate = False):
     np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
     warnings.filterwarnings("ignore")
     if simulate:
-        total = 1000
+        total = 100
         
-        variable = [(-0.9, 0.9), (-0.1,0.1)]
+        # variable = [(-0.9, 0.9), (-0.1,0.1)]
+        variable = [(-0.5, 0.5)]
         for trial in variable:
             blue = 0
             red = 0
             gameTimes = []
             gameRounds = []
+            redWinRounds = []
+            blueWinRounds = []
             gameDurations = []
             for i in range(total):
                 G1 = Game(GREY_NUM,GREEN_NUM,CON_PROB,SPY_PROP,trial,INIT_VOTE, True, True)
@@ -802,18 +833,24 @@ def main(simulate = False):
                 gameEnd = time.time()
                 if result == 1:
                     blue += 1
+                    blueWinRounds.append(rounds)
                 else:
                     red += 1
+                    redWinRounds.append(rounds)
                 
                 gameTimes.append(sum(times)/rounds)
                 gameRounds.append(rounds)
                 gameDurations.append(gameEnd - gameStart)
             
-            print(f"\nUncertainty Interval: {trial}")
-            print(f"\tBlue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%")
-            print(f"\tAverage game duration:\t\t{sum(gameDurations)/len(gameDurations)}")
-            print(f"\tAverage rounds per game:\t{sum(gameRounds)/len(gameRounds)}")
-            print(f"\tAverage seconds per round:\t{sum(gameTimes)/len(gameTimes)}")
+            print()
+            # print(f"\nUncertainty Interval: {trial}")
+            # print(f"\tBlue: {round(blue*100/total, 2)}%\tRed: {round(red*100/total, 2)}%")
+            # print(f"\tAverage game duration:\t\t{sum(gameDurations)/len(gameDurations)}")
+            # print(f"\tAverage rounds per game:\t{sum(gameRounds)/len(gameRounds)}")
+            print(f"\tAverage rounds it takes for Blue to win: \t{round(sum(blueWinRounds)/len(blueWinRounds),1)}")
+            print(f"\tAverage rounds it takes for Red to win: \t{round(sum(redWinRounds)/len(redWinRounds),1)}")
+            # print(f"\tAverage seconds per round:\t{sum(gameTimes)/len(gameTimes)}")
+            print()
             
     # total = 1000
     
