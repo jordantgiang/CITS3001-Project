@@ -12,7 +12,6 @@ import random
 import warnings
 
 
-
 # Global Constants
 # --------------------------------------------------- 
 # Inputs
@@ -213,9 +212,9 @@ class Red:
     def randomAIAction(self,game):
         return random.choice(list(self.messages.values()))
         
-    def AIAction(self,game):
-        # return random.choice(list(self.messages.values()))
-        return self.messages["M5"]
+    # def AIAction(self,game):
+    #     # return random.choice(list(self.messages.values()))
+    #     return self.messages["M5"]
 
     def AIAction(self,game):
         Vperc, NVperc = game.calcVoters()
@@ -263,7 +262,7 @@ class Grey:
         self.spy = spy
         self.messages = {
             "BLUE": {"strength": 2.5, "message": "We encourage everyone to vote"},
-            "RED": {"strength": 6, "message": "Voting doesn't make a difference1"}
+            "RED": {"strength": 6.0, "message": "Voting doesn't make a difference!"}
         }
 
 
@@ -504,7 +503,7 @@ class Game:
             if (i+1 <= self.greyNum * self.spyProp):
                 spy = True
             self.nodes.append(Grey(spy))
-
+        
     def checkWin(self):
         if (self.nodes[0].energy == 0 and len(self.redAdj) == 0 and len(self.nodes) == self.greenNum + 2):
             Voters = 0
@@ -788,7 +787,7 @@ def main(simulate = False):
     if simulate:
         total = 1000
         
-        variable = [(-0.9, 0.9), (-0.1,0.1)]
+        variable = [(-0.5, 0.5), (-0.9, 0.9)]
         for trial in variable:
             blue = 0
             red = 0
@@ -844,4 +843,4 @@ def main(simulate = False):
             print("Red Won")
 
 if __name__=="__main__":
-    main(True)
+    main()
